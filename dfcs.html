@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFCS</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            background-color: #0b0f0b;
+            color: #00ff66;
+            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        .shell {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #00ff66;
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 2px;
+        }
+
+        .assigned-name {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 8px 14px;
+            min-width: 130px;
+            text-align: center;
+        }
+
+        .unit-location {
+            min-width: 180px;
+        }
+
+        .assigned-name-label {
+            font-size: 10px;
+            opacity: 0.75;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .assigned-name-value {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #003311;
+        }
+
+        button:disabled {
+            border-color: #444;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background-color: #000;
+        }
+
+        .panel {
+            border: 2px solid #00ff66;
+            background-color: #111;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0,255,102,0.1);
+        }
+
+        .end-report {
+            display: none;
+            border: 2px solid #00ff66;
+            background-color: #001a08;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+
+        .end-report.active {
+            display: block;
+        }
+
+        .end-report-title {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .acknowledge-button {
+            margin-top: 14px;
+            background-color: #00ff66;
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
+
+        .summary-grid,
+        .firing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-grid {
+            margin-bottom: 20px;
+        }
+
+        .command-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ready-button {
+            min-width: 120px;
+            background-color: #00ff66;
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
+
+        .ready-button.sent {
+            background-color: #9dffbf;
+        }
+
+        .rounds-complete-button {
+            min-width: 160px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-weight: bold;
+        }
+
+        .rounds-complete-button.sent {
+            background-color: #00ff66;
+            color: #000;
+            border: none;
+        }
+
+        .deny-button {
+            min-width: 110px;
+            background-color: #3a0000;
+            color: #ff8080;
+            border: 1px solid #ff3030;
+            font-weight: bold;
+        }
+
+        .deny-button:hover {
+            background-color: #5a0000;
+        }
+
+        .movement-button {
+            min-width: 150px;
+            background-color: #000;
+            color: #00ccff;
+            border: 1px solid #00ccff;
+            font-weight: bold;
+        }
+
+        .movement-button.stationary {
+            color: #00ff66;
+            border-color: #00ff66;
+        }
+
+        .movement-button.moving {
+            color: #ffcc00;
+            border-color: #ffcc00;
+        }
+
+        .moving-location-panel {
+            display: none;
+            grid-template-columns: minmax(160px, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .moving-location-panel.visible {
+            display: grid;
+        }
+
+        .moving-location-panel label {
+            display: block;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            opacity: 0.75;
+        }
+
+        .moving-location-panel input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-size: 14px;
+        }
+
+        .moving-location-panel button {
+            height: 38px;
+            font-weight: bold;
+        }
+
+        .command-status {
+            min-height: 18px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #9dffbf;
+        }
+
+        .fire-warning {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 20px;
+            padding: 16px;
+            border: 3px solid #ff3030;
+            background-color: #3a0000;
+            color: #fff;
+            animation: fireFlash 0.8s steps(2, start) infinite;
+        }
+
+        .fire-warning.active {
+            display: flex;
+        }
+
+        .fire-warning-text {
+            font-size: 34px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .shot-button {
+            min-width: 120px;
+            background-color: #fff;
+            color: #3a0000;
+            border: none;
+            font-weight: bold;
+        }
+
+        .shot-button.sent {
+            background-color: #ffb0b0;
+        }
+
+        @keyframes fireFlash {
+            0%, 100% {
+                background-color: #3a0000;
+                border-color: #ff3030;
+            }
+            50% {
+                background-color: #ff3030;
+                border-color: #fff;
+            }
+        }
+
+        .data-item {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 12px;
+            min-height: 58px;
+        }
+
+        .data-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .data-value {
+            font-size: 18px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            padding: 24px 0 0;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 560px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .assigned-name {
+                width: auto;
+            }
+
+            .fire-warning {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="sync.js"></script>
+</head>
+<body>
+    <div class="shell">
+        <div class="top-bar">
+            <h1>DFCS</h1>
+            <div class="assigned-name">
+                <div class="assigned-name-label">UNIT ASSIGNED NAME</div>
+                <div class="assigned-name-value" id="unitAssignedNameDisplay">---</div>
+            </div>
+            <div class="assigned-name unit-location">
+                <div class="assigned-name-label">UNIT LOCATION</div>
+                <div class="assigned-name-value" id="unitLocationDisplay">---</div>
+            </div>
+            <div class="nav-actions">
+                <button onclick="window.location.href='firing-unit.html'">UNIT SELECT</button>
+                <button onclick="window.location.href='index.html'">SETUP</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="end-report" id="endMissionReportPanel">
+                <div class="end-report-title">END OF MISSION</div>
+                <div id="endMissionReportText">Mission ended.</div>
+                <button class="acknowledge-button" onclick="acknowledgeEndMission()">ACKNOWLEDGE</button>
+            </div>
+
+            <div class="summary-grid">
+                <div class="data-item">
+                    <div class="data-label">TARGET NUMBER</div>
+                    <div class="data-value" id="targetNumberDisplay">---</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">UPDATED</div>
+                    <div class="data-value" id="updatedAtDisplay">---</div>
+                </div>
+            </div>
+
+            <div class="command-row">
+                <button class="movement-button" id="movementButton" onclick="toggleMovementStatus()">SET STATIONARY</button>
+                <button class="ready-button" id="readyButton" onclick="markReady()" disabled>READY</button>
+                <button class="rounds-complete-button" id="roundsCompleteButton" onclick="sendRoundsComplete()" disabled>ROUNDS COMPLETE</button>
+                <button class="deny-button" id="denyMissionButton" onclick="denyMission()" disabled>DENY</button>
+                <div class="command-status" id="commandStatus">Waiting for FDC firing data.</div>
+            </div>
+
+            <div class="moving-location-panel" id="movingLocationPanel">
+                <div>
+                    <label for="movingLocationInput">Moving Location</label>
+                    <input id="movingLocationInput" type="text" maxlength="10" placeholder="10 figure grid">
+                </div>
+                <button type="button" onclick="applyMovingLocation()">APPLY</button>
+            </div>
+
+            <div class="fire-warning" id="fireWarning">
+                <div class="fire-warning-text">FIRE</div>
+                <button class="shot-button" id="shotButton" onclick="sendShot()">SHOT</button>
+            </div>
+
+            <div class="firing-grid" id="firingDataGrid"></div>
+            <div class="empty-state" id="emptyState">Waiting for FDC firing data for this unit.</div>
+        </div>
+    </div>
+
+    <script>
+        function getAssignedUnit() {
+            return localStorage.getItem("assignedFiringUnit") || "A";
+        }
+
+        function getUnitOperationalStatus(unit = getAssignedUnit()) {
+            return localStorage.getItem(`firingUnit${unit}OperationalStatus`) || "out of action";
+        }
+
+        function setUnitOperationalStatus(status, unit = getAssignedUnit()) {
+            const normalizedStatus = status === "moving" ? "moving" : "stationary";
+            localStorage.setItem(`firingUnit${unit}OperationalStatus`, normalizedStatus);
+        }
+
+        function normalizeGridInput(value) {
+            return (value || "").replace(/\D/g, "").slice(0, 10);
+        }
+
+        function getCurrentUnitLocation(unit = getAssignedUnit()) {
+            return localStorage.getItem(`firingUnit${unit}Location`) || localStorage.getItem(`unit${unit}Location`) || "";
+        }
+
+        function getPendingMovingLocation(unit = getAssignedUnit()) {
+            return localStorage.getItem(`firingUnit${unit}PendingLocation`) || "";
+        }
+
+        function applyMovingLocation() {
+            const assignedUnit = getAssignedUnit();
+            const input = document.getElementById("movingLocationInput");
+            const grid = normalizeGridInput(input && input.value);
+            if (grid.length !== 10) {
+                alert("Enter a 10 figure grid.");
+                return;
+            }
+
+            localStorage.setItem(`firingUnit${assignedUnit}PendingLocation`, grid);
+            if (input) input.value = grid;
+            renderDfcs();
+        }
+
+        function sendStationaryLocationUpdate() {
+            const assignedUnit = getAssignedUnit();
+            const pendingGrid = getPendingMovingLocation(assignedUnit);
+            if (!pendingGrid) return;
+
+            localStorage.setItem(`firingUnit${assignedUnit}Location`, pendingGrid);
+            localStorage.setItem(`unit${assignedUnit}Location`, pendingGrid);
+            localStorage.removeItem(`firingUnit${assignedUnit}PendingLocation`);
+            localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
+                unit: assignedUnit,
+                location: pendingGrid,
+                updatedAt: new Date().toISOString(),
+                updateId: `${assignedUnit}-${Date.now()}`,
+            }));
+        }
+
+        function toggleMovementStatus() {
+            const currentStatus = getUnitOperationalStatus();
+            const nextStatus = currentStatus === "stationary" ? "moving" : "stationary";
+            if (currentStatus === "moving" && nextStatus === "stationary") {
+                const input = document.getElementById("movingLocationInput");
+                const grid = normalizeGridInput((input && input.value) || getPendingMovingLocation());
+                if (grid.length !== 10) {
+                    alert("Enter and apply a 10 figure grid before setting stationary.");
+                    return;
+                }
+                localStorage.setItem(`firingUnit${getAssignedUnit()}PendingLocation`, grid);
+                sendStationaryLocationUpdate();
+            }
+
+            setUnitOperationalStatus(nextStatus);
+
+            const payload = getLatestFiringPayload();
+            const currentMissionStatus = getMissionUnitStatus(payload);
+            if (payload && (!currentMissionStatus || currentMissionStatus === "moving" || currentMissionStatus === "stationary" || currentMissionStatus === "out of action")) {
+                setMissionUnitStatus(getUnitOperationalStatus(), payload);
+            }
+
+            renderDfcs();
+        }
+
+        function getUnitAssignedName() {
+            const unit = getAssignedUnit();
+            const savedCallsign = localStorage.getItem("fdcCallsign") || "";
+            const fdcCallsign = /^[1-4]$/.test(savedCallsign) ? savedCallsign : "";
+            return `${unit}${fdcCallsign || "-"}`;
+        }
+
+        function readJsonStorage(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || "null");
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function getLatestFiringPayload() {
+            const payload = readJsonStorage("latestFiringSolutions");
+            const assignedUnit = getAssignedUnit();
+            if (!payload || !Array.isArray(payload.solutions)) {
+                return payload;
+            }
+            const deniedMission = readJsonStorage(`dfcsDeniedMission${assignedUnit}`);
+            if (deniedMission && deniedMission.targetNumber === payload.targetNumber) {
+                return null;
+            }
+            if (Array.isArray(payload.recipients) && payload.recipients.length && !payload.recipients.includes(assignedUnit)) {
+                return null;
+            }
+            return payload;
+        }
+
+        function formatUpdatedAt(value) {
+            if (!value) return "---";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "---";
+            return `${date.getUTCHours().toString().padStart(2, "0")}${date.getUTCMinutes().toString().padStart(2, "0")}${date.getUTCSeconds().toString().padStart(2, "0")}Z`;
+        }
+
+        function normalizeMilitaryTime(value) {
+            const digits = (value || "").replace(/\D/g, "");
+            if (digits.length !== 4 && digits.length !== 6) return "";
+
+            const hours = parseInt(digits.slice(0, 2), 10);
+            const minutes = parseInt(digits.slice(2, 4), 10);
+            const seconds = digits.length === 6 ? parseInt(digits.slice(4, 6), 10) : 0;
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
+                return "";
+            }
+
+            return `${digits}Z`;
+        }
+
+        function parseMilitaryTimeToSeconds(value) {
+            const normalized = normalizeMilitaryTime(value);
+            if (!normalized) return null;
+
+            const digits = normalized.replace(/\D/g, "");
+            const hours = parseInt(digits.slice(0, 2), 10);
+            const minutes = parseInt(digits.slice(2, 4), 10);
+            const seconds = digits.length === 6 ? parseInt(digits.slice(4, 6), 10) : 0;
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        function getSystemZuluSeconds() {
+            const now = new Date();
+            return now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+        }
+
+        function getActiveZuluSeconds() {
+            const markedZuluTime = localStorage.getItem("zuluTime");
+            if (markedZuluTime) {
+                const markedSeconds = parseMilitaryTimeToSeconds(markedZuluTime);
+                const markedAt = parseInt(localStorage.getItem("zuluTimeMarkedAt") || "", 10);
+                if (markedSeconds === null) {
+                    return getSystemZuluSeconds();
+                }
+                if (Number.isNaN(markedAt)) {
+                    return markedSeconds;
+                }
+
+                return markedSeconds + Math.floor((Date.now() - markedAt) / 1000);
+            }
+
+            return getSystemZuluSeconds();
+        }
+
+        function formatCountdown(totalSeconds) {
+            const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+            const minutes = Math.floor(safeSeconds / 60);
+            const seconds = safeSeconds % 60;
+            return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        }
+
+        function getFireCountdown(payload, solution) {
+            if (!payload || payload.engagementTiming !== "Time on target") {
+                return solution && solution.countdown ? solution.countdown : "";
+            }
+
+            const targetZuluSeconds = parseMilitaryTimeToSeconds(payload.timeOnTarget || "");
+            const timeOfFlightSeconds = parseFloat(solution && solution.timeOfFlightSeconds);
+            if (targetZuluSeconds === null || Number.isNaN(timeOfFlightSeconds)) {
+                return solution && solution.countdown ? solution.countdown : "";
+            }
+
+            let secondsUntilImpact = targetZuluSeconds - getActiveZuluSeconds();
+            if (secondsUntilImpact < 0) {
+                secondsUntilImpact += 24 * 60 * 60;
+            }
+
+            const secondsUntilFire = secondsUntilImpact - timeOfFlightSeconds;
+            return secondsUntilFire <= 0 ? "FIRE NOW" : formatCountdown(secondsUntilFire);
+        }
+
+        function addDataItem(label, value) {
+            return `
+                <div class="data-item">
+                    <div class="data-label">${label}</div>
+                    <div class="data-value">${value || "---"}</div>
+                </div>
+            `;
+        }
+
+        function getReadyState() {
+            return readJsonStorage("dfcsReadyState");
+        }
+
+        function getFireCommand() {
+            return readJsonStorage("fireCommand");
+        }
+
+        function getShotReport() {
+            return readJsonStorage("shotReport");
+        }
+
+        function isCurrentTargetState(state, payload) {
+            return Boolean(state && payload && state.targetNumber && state.targetNumber === payload.targetNumber);
+        }
+
+        function getMissionStatusReports() {
+            return readJsonStorage("missionStatusReports") || {};
+        }
+
+        function saveMissionStatusReports(reports) {
+            localStorage.setItem("missionStatusReports", JSON.stringify(reports));
+        }
+
+        function setMissionUnitStatus(status, payload = getLatestFiringPayload()) {
+            const assignedUnit = getAssignedUnit();
+            if (!payload || !payload.targetNumber) return;
+
+            const reports = getMissionStatusReports();
+            reports[payload.targetNumber] = reports[payload.targetNumber] || {};
+            reports[payload.targetNumber][assignedUnit] = status;
+            saveMissionStatusReports(reports);
+        }
+
+        function getMissionUnitStatus(payload = getLatestFiringPayload()) {
+            const assignedUnit = getAssignedUnit();
+            if (!payload || !payload.targetNumber) return "";
+
+            const reports = getMissionStatusReports();
+            return reports[payload.targetNumber] && reports[payload.targetNumber][assignedUnit]
+                ? reports[payload.targetNumber][assignedUnit]
+                : "";
+        }
+
+        function isCountdownFireNow(payload, solution) {
+            return payload && payload.engagementTiming === "Time on target" && getFireCountdown(payload, solution) === "FIRE NOW";
+        }
+
+        function isWhenReadyFireNow(payload) {
+            return payload && payload.engagementTiming === "When Ready";
+        }
+
+        function getEndMissionReport() {
+            return readJsonStorage("endMissionReport");
+        }
+
+        function isEndMissionActive(payload) {
+            const report = getEndMissionReport();
+            return Boolean(report && !report.acknowledged && (!payload || !report.targetNumber || report.targetNumber === payload.targetNumber));
+        }
+
+        function acknowledgeEndMission() {
+            const report = getEndMissionReport();
+            if (report) {
+                localStorage.setItem("endMissionReport", JSON.stringify({
+                    ...report,
+                    acknowledged: true,
+                    acknowledgedAt: new Date().toISOString(),
+                    acknowledgedBy: getUnitAssignedName(),
+                }));
+            }
+
+            localStorage.removeItem("latestFiringSolutions");
+            localStorage.removeItem("dfcsReadyState");
+            localStorage.removeItem("fireCommand");
+            localStorage.removeItem("shotReport");
+            localStorage.removeItem("roundsCompleteReport");
+            renderDfcs();
+        }
+
+        function denyMission() {
+            const assignedUnit = getAssignedUnit();
+            const payload = getLatestFiringPayload();
+            if (!payload || !payload.targetNumber) return;
+
+            const missionStatus = getMissionUnitStatus(payload);
+            const operationalStatus = getUnitOperationalStatus(assignedUnit) === "moving" ? "moving" : "stationary";
+            const reportedStatus = missionStatus === "ready" ? "ready" : operationalStatus;
+            const report = {
+                unit: assignedUnit,
+                unitAssignedName: getUnitAssignedName(),
+                targetNumber: payload.targetNumber,
+                status: reportedStatus,
+                deniedAt: new Date().toISOString(),
+                denyId: `${assignedUnit}-${payload.targetNumber}-${Date.now()}`,
+            };
+
+            localStorage.setItem("missionDenyReport", JSON.stringify(report));
+            localStorage.setItem(`dfcsDeniedMission${assignedUnit}`, JSON.stringify(report));
+            setMissionUnitStatus(reportedStatus, payload);
+            localStorage.removeItem("dfcsReadyState");
+            localStorage.removeItem("shotReport");
+            localStorage.removeItem("roundsCompleteReport");
+            renderDfcs();
+        }
+
+        function markReady() {
+            const assignedUnit = getAssignedUnit();
+            const payload = getLatestFiringPayload();
+            const solution = payload && Array.isArray(payload.solutions)
+                ? payload.solutions.find(item => item.label === assignedUnit)
+                : null;
+
+            if (!solution || !payload || !payload.targetNumber) return;
+
+            localStorage.setItem("dfcsReadyState", JSON.stringify({
+                unit: assignedUnit,
+                unitAssignedName: getUnitAssignedName(),
+                targetNumber: payload.targetNumber,
+                readyAt: new Date().toISOString(),
+            }));
+            setMissionUnitStatus("ready", payload);
+            renderDfcs();
+        }
+
+        function sendShot() {
+            const assignedUnit = getAssignedUnit();
+            const payload = getLatestFiringPayload();
+            const fireCommand = getFireCommand();
+            const readyState = getReadyState();
+            const solution = payload && Array.isArray(payload.solutions)
+                ? payload.solutions.find(item => item.label === assignedUnit)
+                : null;
+            const isReady = isCurrentTargetState(readyState, payload) && readyState.unit === assignedUnit;
+            const canSendShot = isCurrentTargetState(fireCommand, payload) || (isReady && isCountdownFireNow(payload, solution)) || (isReady && isWhenReadyFireNow(payload));
+            if (!canSendShot) return;
+
+            localStorage.setItem("shotReport", JSON.stringify({
+                unit: assignedUnit,
+                unitAssignedName: getUnitAssignedName(),
+                targetNumber: payload.targetNumber,
+                shotAt: new Date().toISOString(),
+            }));
+            setMissionUnitStatus("shot", payload);
+            renderDfcs();
+        }
+
+        function sendRoundsComplete() {
+            const assignedUnit = getAssignedUnit();
+            const payload = getLatestFiringPayload();
+            const shotReport = getShotReport();
+            if (!isCurrentTargetState(shotReport, payload) || shotReport.unit !== assignedUnit) return;
+
+            localStorage.setItem("roundsCompleteReport", JSON.stringify({
+                unit: assignedUnit,
+                unitAssignedName: getUnitAssignedName(),
+                targetNumber: payload.targetNumber,
+                completedAt: new Date().toISOString(),
+            }));
+            setMissionUnitStatus("rounds complete", payload);
+            renderDfcs();
+        }
+
+        function renderDfcs() {
+            const assignedUnit = getAssignedUnit();
+            const unitAssignedName = getUnitAssignedName();
+            const payload = getLatestFiringPayload();
+            const endMissionActive = isEndMissionActive(payload);
+            const solution = payload && Array.isArray(payload.solutions)
+                ? payload.solutions.find(item => item.label === assignedUnit)
+                : null;
+            const readyState = getReadyState();
+            const fireCommand = getFireCommand();
+            const shotReport = getShotReport();
+            const unitStatus = getMissionUnitStatus(payload);
+            const isReady = isCurrentTargetState(readyState, payload) && readyState.unit === assignedUnit;
+            const isFireCommanded = isCurrentTargetState(fireCommand, payload) && fireCommand.unit === assignedUnit;
+            const isShotSent = (isCurrentTargetState(shotReport, payload) && shotReport.unit === assignedUnit) || unitStatus === "shot" || unitStatus === "rounds complete";
+            const isRoundsComplete = unitStatus === "rounds complete";
+
+            document.getElementById("unitAssignedNameDisplay").innerText = unitAssignedName;
+            document.getElementById("unitLocationDisplay").innerText = getCurrentUnitLocation(assignedUnit) || "---";
+            document.getElementById("targetNumberDisplay").innerText = payload && payload.targetNumber ? payload.targetNumber : "---";
+            document.getElementById("updatedAtDisplay").innerText = formatUpdatedAt(payload && payload.updatedAt);
+
+            const grid = document.getElementById("firingDataGrid");
+            const emptyState = document.getElementById("emptyState");
+            const readyButton = document.getElementById("readyButton");
+            const commandStatus = document.getElementById("commandStatus");
+            const fireWarning = document.getElementById("fireWarning");
+            const shotButton = document.getElementById("shotButton");
+            const roundsCompleteButton = document.getElementById("roundsCompleteButton");
+            const denyMissionButton = document.getElementById("denyMissionButton");
+            const movementButton = document.getElementById("movementButton");
+            const movingLocationPanel = document.getElementById("movingLocationPanel");
+            const movingLocationInput = document.getElementById("movingLocationInput");
+            const endMissionReportPanel = document.getElementById("endMissionReportPanel");
+            const endMissionReportText = document.getElementById("endMissionReportText");
+            const operationalStatus = getUnitOperationalStatus(assignedUnit);
+
+            if (endMissionReportPanel) {
+                endMissionReportPanel.classList.toggle("active", endMissionActive);
+            }
+            if (endMissionReportText) {
+                const report = getEndMissionReport();
+                endMissionReportText.innerText = report && report.targetNumber
+                    ? `Mission ${report.targetNumber} ended.`
+                    : "Mission ended.";
+            }
+
+            readyButton.disabled = !solution;
+            readyButton.classList.toggle("sent", isReady);
+            readyButton.innerText = isReady ? "READY SENT" : "READY";
+            movementButton.classList.remove("moving", "stationary");
+            if (operationalStatus === "moving" || operationalStatus === "stationary") {
+                movementButton.classList.add(operationalStatus);
+            }
+            movementButton.innerText = operationalStatus === "moving"
+                ? "MOVING"
+                : operationalStatus === "stationary"
+                    ? "STATIONARY"
+                    : "SET STATIONARY";
+            if (movingLocationPanel) {
+                movingLocationPanel.classList.toggle("visible", operationalStatus === "moving");
+            }
+            if (movingLocationInput && document.activeElement !== movingLocationInput) {
+                movingLocationInput.value = getPendingMovingLocation(assignedUnit) || getCurrentUnitLocation(assignedUnit);
+            }
+            fireWarning.classList.remove("active");
+            shotButton.classList.toggle("sent", isShotSent);
+            shotButton.innerText = isShotSent ? "SHOT SENT" : "SHOT";
+            shotButton.disabled = true;
+            roundsCompleteButton.disabled = !isShotSent || isRoundsComplete;
+            roundsCompleteButton.classList.toggle("sent", isRoundsComplete);
+            roundsCompleteButton.innerText = isRoundsComplete ? "ROUNDS COMPLETE SENT" : "ROUNDS COMPLETE";
+            denyMissionButton.disabled = !solution;
+
+            if (isRoundsComplete) {
+                commandStatus.innerText = "Rounds complete sent to FDC.";
+            } else if (isShotSent) {
+                commandStatus.innerText = "Shot sent to FDC.";
+            } else if (isFireCommanded) {
+                commandStatus.innerText = "Fire command received.";
+            } else if (isReady) {
+                commandStatus.innerText = "Ready sent to FDC.";
+            } else if (solution) {
+                commandStatus.innerText = "Review firing data, then press Ready.";
+            } else {
+                commandStatus.innerText = "Waiting for FDC firing data.";
+            }
+
+            if (!solution) {
+                grid.innerHTML = "";
+                emptyState.style.display = "block";
+                return;
+            }
+
+            const fireCountdown = getFireCountdown(payload, solution);
+            const totFireCommanded = isCountdownFireNow(payload, solution);
+            const whenReadyFireCommanded = isReady && isWhenReadyFireNow(payload);
+            const showFireWarning = Boolean(solution && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
+            fireWarning.classList.toggle("active", showFireWarning);
+            shotButton.disabled = !showFireWarning;
+            if (showFireWarning && payload.engagementTiming === "Time on target") {
+                commandStatus.innerText = "TOT countdown complete.";
+            } else if (showFireWarning && payload.engagementTiming === "When Ready") {
+                commandStatus.innerText = "Ready complete.";
+            }
+            emptyState.style.display = "none";
+            grid.innerHTML = [
+                addDataItem("Bearing", solution.bearing),
+                addDataItem("Elevation", solution.elevation),
+                solution.ammunition ? addDataItem("Ammunition", solution.ammunition) : "",
+                solution.charge !== undefined && solution.charge !== "" ? addDataItem("Charge", solution.charge) : "",
+                addDataItem("Range", solution.range),
+                fireCountdown ? addDataItem("Fire Countdown", fireCountdown) : "",
+                addDataItem("Time of Flight", solution.time),
+                addDataItem("Adjusted Aim Grid", solution.aimGrid),
+                payload.methodOfEngagement ? addDataItem("Method of Engagement", payload.methodOfEngagement) : "",
+                payload.methodOfFireControl ? addDataItem("Method of Fire Control", payload.methodOfFireControl) : "",
+            ].join("");
+        }
+
+        renderDfcs();
+        setInterval(renderDfcs, 1000);
+    </script>
+</body>
+</html>
