@@ -284,7 +284,7 @@
 
     <script>
         const UNIT_LABELS = ["A", "B", "C", "D"];
-        const DFCS_PRESENCE_TIMEOUT_MS = 15000;
+        const DFCS_PRESENCE_TIMEOUT_MS = 25000;
 
         function generateSessionCode() {
             return Math.floor(100000 + Math.random() * 900000).toString();
@@ -391,7 +391,17 @@
             return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= DFCS_PRESENCE_TIMEOUT_MS;
         }
 
-        function writeDfcsPresence(label, fdcCallsign) {
+        function getPresenceJoinedAt(existingPresence, fdcCallsign, now, forceNewJoin = false) {
+            if (forceNewJoin) return now;
+            const roomStartedMs = Date.parse(localStorage.getItem(`fdc${fdcCallsign}RoomStartedAt`) || "");
+            const joinedMs = Date.parse(existingPresence && existingPresence.joinedAt || "");
+            if (Number.isFinite(roomStartedMs) && (!Number.isFinite(joinedMs) || joinedMs < roomStartedMs)) {
+                return now;
+            }
+            return existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now;
+        }
+
+        function writeDfcsPresence(label, fdcCallsign, forceNewJoin = false) {
             const existingPresence = readJsonStorage(`firingUnit${fdcCallsign}${label}Presence`);
             const now = new Date().toISOString();
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Presence`, JSON.stringify({
@@ -399,7 +409,7 @@
                 fdcCallsign,
                 callsign: `${label}${fdcCallsign}`,
                 joined: true,
-                joinedAt: existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now,
+                joinedAt: getPresenceJoinedAt(existingPresence, fdcCallsign, now, forceNewJoin),
                 lastSeenAt: now,
             }));
         }
@@ -516,7 +526,7 @@
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Location`, location);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}OperationalStatus`, "stationary");
-            writeDfcsPresence(label, fdcCallsign);
+            writeDfcsPresence(label, fdcCallsign, true);
 
             window.location.href = "firing-unit.html";
         }

@@ -2309,7 +2309,7 @@
                 return false;
             }
             const lastSeenMs = Date.parse(presence.lastSeenAt || "");
-            return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= 15000;
+            return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= 25000;
         }
 
         function getActiveWeaponSystem() {

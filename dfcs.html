@@ -442,12 +442,20 @@
             const presenceKey = `${getUnitStoragePrefix(assignedUnit)}Presence`;
             const existingPresence = readJsonStorage(presenceKey);
             const now = new Date().toISOString();
+            const roomStartedMs = Date.parse(localStorage.getItem(`fdc${fdcCallsign}RoomStartedAt`) || "");
+            const joinedMs = Date.parse(existingPresence && existingPresence.joinedAt || "");
+            const joinedAt = Number.isFinite(roomStartedMs) && (!Number.isFinite(joinedMs) || joinedMs < roomStartedMs)
+                ? now
+                : existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now;
+            if (!localStorage.getItem(`${getUnitStoragePrefix(assignedUnit)}OperationalStatus`)) {
+                localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}OperationalStatus`, "stationary");
+            }
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Presence`, JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign,
                 callsign: `${assignedUnit}${fdcCallsign}`,
                 joined: true,
-                joinedAt: existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now,
+                joinedAt,
                 lastSeenAt: now,
             }));
         }
