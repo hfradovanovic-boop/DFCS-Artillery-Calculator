@@ -937,6 +937,7 @@
         }
 
         .connectivity-status {
+            display: none;
             margin: 0 0 10px;
             border: 1px solid #00ccff;
             background-color: #001b24;
@@ -945,6 +946,16 @@
             font-size: 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
+        }
+
+        .connectivity-status.visible {
+            display: block;
+        }
+
+        .connectivity-status.alert {
+            border-color: #ffcc00;
+            background-color: #1d1600;
+            color: #ffcc00;
         }
 
         .resend-notice button {
@@ -1674,7 +1685,7 @@
             <div class="right-section">
                 <div class="mission-status-box">
                     <div class="mission-status-title">Mission Status Monitor</div>
-                    <div class="connectivity-status" id="connectivityStatus">No DFCS ping received.</div>
+                    <div class="connectivity-status" id="connectivityStatus"></div>
                     <table class="mission-status-table">
                         <thead>
                             <tr>
@@ -2145,6 +2156,7 @@
 
             clearMissionUnitReports(report.unit, payload.targetNumber);
             setMissionUnitStatus(report.unit, report.status || getUnitOperationalStatus(report.unit), payload.targetNumber);
+            updateConnectivityStatus(`Mission ${report.targetNumber} denied by ${report.unitAssignedName || `${report.unit}${getActiveFdcCallsign()}`}.`, "alert");
             localStorage.setItem("latestFiringSolutions", JSON.stringify({
                 ...payload,
                 updatedAt: new Date().toISOString(),
@@ -2164,11 +2176,12 @@
             return `${date.getUTCHours().toString().padStart(2, "0")}${date.getUTCMinutes().toString().padStart(2, "0")}${date.getUTCSeconds().toString().padStart(2, "0")}Z`;
         }
 
-        function updateConnectivityStatus(message) {
+        function updateConnectivityStatus(message = "", type = "ping") {
             const connectivityStatus = document.getElementById("connectivityStatus");
-            if (connectivityStatus && message) {
-                connectivityStatus.innerText = message;
-            }
+            if (!connectivityStatus) return;
+            connectivityStatus.classList.toggle("visible", Boolean(message));
+            connectivityStatus.classList.toggle("alert", type === "alert");
+            connectivityStatus.innerText = message || "";
         }
 
         function processDfcsPing() {
@@ -2178,7 +2191,17 @@
                 return;
             }
 
-            updateConnectivityStatus(`Last ping from ${ping.unitAssignedName || `${ping.unit}${ping.fdcCallsign}`} at ${formatConnectivityTime(ping.sentAt)}`);
+            const pingAgeMs = Date.now() - Date.parse(ping.sentAt || "");
+            const currentNotice = document.getElementById("connectivityStatus");
+            if (currentNotice && currentNotice.classList.contains("alert")) {
+                // Denied mission notices have priority over transient ping notices.
+            } else if (Number.isFinite(pingAgeMs) && pingAgeMs <= 15000) {
+                updateConnectivityStatus(`Ping from ${ping.unitAssignedName || `${ping.unit}${ping.fdcCallsign}`} at ${formatConnectivityTime(ping.sentAt)}`, "ping");
+            } else {
+                if (currentNotice && !currentNotice.classList.contains("alert")) {
+                    updateConnectivityStatus();
+                }
+            }
             if (ping.pingId === lastProcessedPingId) {
                 return;
             }
@@ -2355,7 +2378,7 @@
             reports[targetNumber] = {};
             getFireUnits().forEach(unit => {
                 const status = recipients.includes(unit.label)
-                    ? "received mission"
+                    ? "sent mission"
                     : getUnitOperationalStatus(unit.label);
                 reports.fdcs[fdcCallsign][targetNumber][unit.label] = status;
                 reports[targetNumber][unit.label] = status;
@@ -2393,7 +2416,7 @@
                 return "ready";
             }
             if (payload && payload.targetNumber === targetNumber && Array.isArray(payload.recipients) && payload.recipients.includes(unitLabel)) {
-                return "received mission";
+                return "sent mission";
             }
             return operationalStatus;
         }
@@ -2550,6 +2573,7 @@
 
             closeAcceptMenu();
             clearFireWorkflowState();
+            updateConnectivityStatus();
             initializeMissionStatuses(recipients);
             localStorage.setItem("latestFiringSolutions", JSON.stringify({
                 ...pendingPayload,
@@ -2577,7 +2601,7 @@
                 return;
             }
 
-            recipients.forEach(unit => setMissionUnitStatus(unit, "received mission", activePayload.targetNumber));
+            recipients.forEach(unit => setMissionUnitStatus(unit, "sent mission", activePayload.targetNumber));
             localStorage.setItem("latestFiringSolutions", JSON.stringify({
                 ...activePayload,
                 updatedAt: new Date().toISOString(),
@@ -2585,6 +2609,7 @@
                 solutions,
                 deniedUnit: "",
             }));
+            updateConnectivityStatus();
             updateFireButtonState();
             updateMissionStatusMonitor();
         }
@@ -3031,8 +3056,14 @@ ${getAmmoOptionsMarkup()}
             }
 
             if (endedTargetNumber) {
+                const activePayload = getActiveMissionPayload();
+                const recipients = activePayload && activePayload.targetNumber === endedTargetNumber && Array.isArray(activePayload.recipients)
+                    ? activePayload.recipients
+                    : [];
                 localStorage.setItem("endMissionReport", JSON.stringify({
                     targetNumber: endedTargetNumber,
+                    fdcCallsign: getActiveFdcCallsign(),
+                    recipients,
                     endedAt: new Date().toISOString(),
                     acknowledged: false,
                 }));

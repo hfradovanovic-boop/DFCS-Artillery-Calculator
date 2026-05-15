@@ -229,11 +229,16 @@
         }
 
         .ping-status {
+            display: none;
             width: 100%;
             font-size: 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
             color: #9dffbf;
+        }
+
+        .ping-status.active {
+            display: block;
         }
 
         .movement-button {
@@ -602,7 +607,15 @@
             if (notificationId) {
                 localStorage.setItem(getTargetNotificationAckKey(), notificationId);
             }
+            const currentStatus = getMissionUnitStatus(payload);
+            if (
+                payload &&
+                (!currentStatus || currentStatus === "sent mission" || currentStatus === "moving" || currentStatus === "stationary" || currentStatus === "out of action")
+            ) {
+                setMissionUnitStatus("received mission", payload);
+            }
             updateTargetReceivedNotification(payload);
+            renderDfcs();
         }
 
         function updateTargetReceivedNotification(payload, solution = null) {
@@ -623,6 +636,7 @@
             if (text && visible) {
                 text.innerText = `Mission ${notificationId} received for ${getUnitAssignedName()}.`;
             }
+            return visible;
         }
 
         function readJsonStorage(key) {
@@ -908,29 +922,46 @@
             const ack = readJsonStorage("fdcPingAck");
             const isThisUnitPing = ping && ping.unit === assignedUnit && ping.fdcCallsign === getAssignedFdcCallsign();
             const isThisUnitAck = ack && ack.unit === assignedUnit && ack.fdcCallsign === getAssignedFdcCallsign();
+            const pingAgeMs = isThisUnitPing ? Date.now() - Date.parse(ping.sentAt || "") : Infinity;
+            const showPing = Number.isFinite(pingAgeMs) && pingAgeMs <= 15000;
+            pingStatus.classList.toggle("active", showPing);
+            if (!showPing) {
+                pingStatus.innerText = "";
+                return;
+            }
 
             if (isThisUnitAck && isThisUnitPing && ack.pingId === ping.pingId) {
                 pingStatus.innerText = `Ping acknowledged by FDC ${ack.fdcCallsign} at ${formatPingTime(ack.ackAt)}`;
             } else if (isThisUnitPing) {
                 pingStatus.innerText = `Ping sent at ${formatPingTime(ping.sentAt)} - waiting for FDC`;
-            } else {
-                pingStatus.innerText = "Ping not sent.";
             }
         }
 
         function isEndMissionActive(payload) {
             const report = getEndMissionReport();
-            return Boolean(report && !report.acknowledged && (!payload || !report.targetNumber || report.targetNumber === payload.targetNumber));
+            const assignedUnit = getAssignedUnit();
+            const isAssignedFdc = !report || !report.fdcCallsign || report.fdcCallsign === getAssignedFdcCallsign();
+            const isRecipient = !report || !Array.isArray(report.recipients) || report.recipients.includes(assignedUnit);
+            const acknowledgedByUnits = report && report.acknowledgedByUnits ? report.acknowledgedByUnits : {};
+            const acknowledgedByThisUnit = Boolean(acknowledgedByUnits[assignedUnit] || (report && report.acknowledgedBy === getUnitAssignedName()));
+            return Boolean(report && !acknowledgedByThisUnit && isAssignedFdc && isRecipient && (!payload || !report.targetNumber || report.targetNumber === payload.targetNumber));
         }
 
         function acknowledgeEndMission() {
             const report = getEndMissionReport();
             if (report) {
+                const assignedUnit = getAssignedUnit();
+                const acknowledgedByUnits = {
+                    ...(report.acknowledgedByUnits || {}),
+                    [assignedUnit]: {
+                        acknowledgedAt: new Date().toISOString(),
+                        acknowledgedBy: getUnitAssignedName(),
+                    },
+                };
                 localStorage.setItem("endMissionReport", JSON.stringify({
                     ...report,
-                    acknowledged: true,
-                    acknowledgedAt: new Date().toISOString(),
-                    acknowledgedBy: getUnitAssignedName(),
+                    acknowledged: false,
+                    acknowledgedByUnits,
                 }));
             }
 
@@ -1071,7 +1102,7 @@
             const endMissionReportPanel = document.getElementById("endMissionReportPanel");
             const endMissionReportText = document.getElementById("endMissionReportText");
             const operationalStatus = getUnitOperationalStatus(assignedUnit);
-            updateTargetReceivedNotification(payload, solution);
+            const targetNotificationActive = updateTargetReceivedNotification(payload, solution);
 
             if (endMissionReportPanel) {
                 endMissionReportPanel.classList.toggle("active", endMissionActive);
@@ -1083,7 +1114,7 @@
                     : "Mission ended.";
             }
 
-            readyButton.disabled = !solution;
+            readyButton.disabled = !solution || targetNotificationActive;
             readyButton.classList.toggle("sent", isReady);
             readyButton.innerText = isReady ? "READY SENT" : "READY";
             movementButton.classList.remove("moving", "stationary");
@@ -1118,6 +1149,8 @@
                 commandStatus.innerText = "Fire command received.";
             } else if (isReady) {
                 commandStatus.innerText = "Ready sent to FDC.";
+            } else if (targetNotificationActive) {
+                commandStatus.innerText = "Acknowledge target received.";
             } else if (solution) {
                 commandStatus.innerText = "Review firing data, then press Ready.";
             } else {
