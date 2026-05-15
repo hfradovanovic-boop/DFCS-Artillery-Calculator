@@ -598,7 +598,13 @@
         }
 
         function getTargetNotificationId(payload) {
-            return payload && payload.targetNumber ? payload.targetNumber : "";
+            return payload && payload.targetNumber
+                ? `${payload.targetNumber}|${payload.acceptedAt || payload.updatedAt || ""}`
+                : "";
+        }
+
+        function getMissionInstanceId(payload) {
+            return getTargetNotificationId(payload);
         }
 
         function acknowledgeTargetNotification() {
@@ -612,6 +618,13 @@
                 payload &&
                 (!currentStatus || currentStatus === "sent mission" || currentStatus === "moving" || currentStatus === "stationary" || currentStatus === "out of action")
             ) {
+                setUnitReport("missionReceivedReport", {
+                    unit: getAssignedUnit(),
+                    unitAssignedName: getUnitAssignedName(),
+                    targetNumber: payload.targetNumber,
+                    missionInstanceId: getMissionInstanceId(payload),
+                    receivedAt: new Date().toISOString(),
+                });
                 setMissionUnitStatus("received mission", payload);
             }
             updateTargetReceivedNotification(payload);
@@ -634,7 +647,7 @@
             const visible = Boolean(notificationId && hasSolution && acknowledgedId !== notificationId);
             panel.classList.toggle("active", visible);
             if (text && visible) {
-                text.innerText = `Mission ${notificationId} received for ${getUnitAssignedName()}.`;
+                text.innerText = `Mission ${payload.targetNumber} received for ${getUnitAssignedName()}.`;
             }
             return visible;
         }
@@ -657,7 +670,11 @@
                 return null;
             }
             const deniedMission = readJsonStorage(`dfcsDeniedMission${getAssignedFdcCallsign()}${assignedUnit}`);
-            if (deniedMission && deniedMission.targetNumber === payload.targetNumber) {
+            if (
+                deniedMission &&
+                deniedMission.targetNumber === payload.targetNumber &&
+                deniedMission.missionInstanceId === getMissionInstanceId(payload)
+            ) {
                 return null;
             }
             if (Array.isArray(payload.recipients) && payload.recipients.length && !payload.recipients.includes(assignedUnit)) {
@@ -966,6 +983,7 @@
             }
 
             localStorage.removeItem("latestFiringSolutions");
+            removeUnitReport("missionReceivedReport");
             removeUnitReport("dfcsReadyState");
             localStorage.removeItem("fireCommand");
             removeUnitReport("shotReport");
@@ -986,6 +1004,7 @@
                 fdcCallsign: getAssignedFdcCallsign(),
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
+                missionInstanceId: getMissionInstanceId(payload),
                 status: reportedStatus,
                 deniedAt: new Date().toISOString(),
                 denyId: `${assignedUnit}-${payload.targetNumber}-${Date.now()}`,
@@ -994,6 +1013,7 @@
             localStorage.setItem("missionDenyReport", JSON.stringify(report));
             localStorage.setItem(`dfcsDeniedMission${getAssignedFdcCallsign()}${assignedUnit}`, JSON.stringify(report));
             setMissionUnitStatus(reportedStatus, payload);
+            removeUnitReport("missionReceivedReport");
             removeUnitReport("dfcsReadyState");
             removeUnitReport("shotReport");
             removeUnitReport("roundsCompleteReport");

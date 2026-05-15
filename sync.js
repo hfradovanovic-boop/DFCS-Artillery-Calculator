@@ -26,7 +26,7 @@
         "PendingLocation",
         "Presence",
     ];
-    const unitReportKeys = ["dfcsReadyState", "shotReport", "roundsCompleteReport"];
+    const unitReportKeys = ["missionReceivedReport", "dfcsReadyState", "shotReport", "roundsCompleteReport"];
     let db = null;
     let applyingRemote = false;
     const originalSetItem = localStorage.setItem.bind(localStorage);

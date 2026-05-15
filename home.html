@@ -2232,10 +2232,11 @@
         function clearFireWorkflowState() {
             const fdcCallsign = getActiveFdcCallsign();
             ["A", "B", "C", "D"].forEach(unit => {
-                ["dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
+                ["missionReceivedReport", "dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
                     localStorage.removeItem(`${key}${fdcCallsign}${unit}`);
                 });
             });
+            localStorage.removeItem("missionReceivedReport");
             localStorage.removeItem("dfcsReadyState");
             localStorage.removeItem("fireCommand");
             localStorage.removeItem("shotReport");
@@ -2265,7 +2266,7 @@
 
         function clearMissionUnitReports(unit, targetNumber = getCurrentTargetNumber()) {
             if (!unit || !targetNumber) return;
-            ["dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
+            ["missionReceivedReport", "dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
                 const report = readJsonStorage(key);
                 const fdcCallsign = getActiveFdcCallsign();
                 localStorage.removeItem(`${key}${fdcCallsign}${unit}`);
@@ -2394,15 +2395,8 @@
 
             const reports = getMissionStatusReports();
             const fdcCallsign = getActiveFdcCallsign();
-            const reportStatus = reports.fdcs &&
-                reports.fdcs[fdcCallsign] &&
-                reports.fdcs[fdcCallsign][targetNumber] &&
-                reports.fdcs[fdcCallsign][targetNumber][unitLabel]
-                ? reports.fdcs[fdcCallsign][targetNumber][unitLabel]
-                : reports[targetNumber] && reports[targetNumber][unitLabel];
-            if (reportStatus) return reportStatus;
-
             const payload = getActiveMissionPayload();
+            const receivedReport = getUnitReport("missionReceivedReport", unitLabel, targetNumber);
             const readyState = getUnitReport("dfcsReadyState", unitLabel, targetNumber);
             const shotReport = getUnitReport("shotReport", unitLabel, targetNumber);
             const roundsCompleteReport = getUnitReport("roundsCompleteReport", unitLabel, targetNumber);
@@ -2415,6 +2409,18 @@
             if (readyState) {
                 return "ready";
             }
+            if (receivedReport) {
+                return "received mission";
+            }
+
+            const reportStatus = reports.fdcs &&
+                reports.fdcs[fdcCallsign] &&
+                reports.fdcs[fdcCallsign][targetNumber] &&
+                reports.fdcs[fdcCallsign][targetNumber][unitLabel]
+                ? reports.fdcs[fdcCallsign][targetNumber][unitLabel]
+                : reports[targetNumber] && reports[targetNumber][unitLabel];
+            if (reportStatus) return reportStatus;
+
             if (payload && payload.targetNumber === targetNumber && Array.isArray(payload.recipients) && payload.recipients.includes(unitLabel)) {
                 return "sent mission";
             }
