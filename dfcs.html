@@ -624,7 +624,7 @@
         }
 
         function getReadyState() {
-            return readJsonStorage("dfcsReadyState");
+            return getUnitReport("dfcsReadyState");
         }
 
         function getFireCommand() {
@@ -632,11 +632,44 @@
         }
 
         function getShotReport() {
-            return readJsonStorage("shotReport");
+            return getUnitReport("shotReport");
         }
 
         function isCurrentTargetState(state, payload) {
             return Boolean(state && payload && state.targetNumber && state.targetNumber === payload.targetNumber);
+        }
+
+        function getUnitReport(key, payload = getLatestFiringPayload()) {
+            const report = readJsonStorage(key);
+            const assignedUnit = getAssignedUnit();
+            if (!report || !payload || !payload.targetNumber) return null;
+            if (report.units && report.units[assignedUnit] && report.units[assignedUnit].targetNumber === payload.targetNumber) {
+                return report.units[assignedUnit];
+            }
+            if (report.unit === assignedUnit && report.targetNumber === payload.targetNumber) {
+                return report;
+            }
+            return null;
+        }
+
+        function setUnitReport(key, value) {
+            const assignedUnit = getAssignedUnit();
+            const report = readJsonStorage(key) || { units: {} };
+            report.units = report.units || {};
+            report.units[assignedUnit] = value;
+            localStorage.setItem(key, JSON.stringify(report));
+        }
+
+        function removeUnitReport(key) {
+            const assignedUnit = getAssignedUnit();
+            const report = readJsonStorage(key);
+            if (!report) return;
+            if (report.units && report.units[assignedUnit]) {
+                delete report.units[assignedUnit];
+                localStorage.setItem(key, JSON.stringify(report));
+            } else if (report.unit === assignedUnit) {
+                localStorage.removeItem(key);
+            }
         }
 
         function getMissionStatusReports() {
@@ -696,10 +729,10 @@
             }
 
             localStorage.removeItem("latestFiringSolutions");
-            localStorage.removeItem("dfcsReadyState");
+            removeUnitReport("dfcsReadyState");
             localStorage.removeItem("fireCommand");
-            localStorage.removeItem("shotReport");
-            localStorage.removeItem("roundsCompleteReport");
+            removeUnitReport("shotReport");
+            removeUnitReport("roundsCompleteReport");
             renderDfcs();
         }
 
@@ -723,9 +756,9 @@
             localStorage.setItem("missionDenyReport", JSON.stringify(report));
             localStorage.setItem(`dfcsDeniedMission${assignedUnit}`, JSON.stringify(report));
             setMissionUnitStatus(reportedStatus, payload);
-            localStorage.removeItem("dfcsReadyState");
-            localStorage.removeItem("shotReport");
-            localStorage.removeItem("roundsCompleteReport");
+            removeUnitReport("dfcsReadyState");
+            removeUnitReport("shotReport");
+            removeUnitReport("roundsCompleteReport");
             renderDfcs();
         }
 
@@ -738,12 +771,12 @@
 
             if (!solution || !payload || !payload.targetNumber) return;
 
-            localStorage.setItem("dfcsReadyState", JSON.stringify({
+            setUnitReport("dfcsReadyState", {
                 unit: assignedUnit,
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
                 readyAt: new Date().toISOString(),
-            }));
+            });
             setMissionUnitStatus("ready", payload);
             renderDfcs();
         }
@@ -757,15 +790,19 @@
                 ? payload.solutions.find(item => item.label === assignedUnit)
                 : null;
             const isReady = isCurrentTargetState(readyState, payload) && readyState.unit === assignedUnit;
-            const canSendShot = isCurrentTargetState(fireCommand, payload) || (isReady && isCountdownFireNow(payload, solution)) || (isReady && isWhenReadyFireNow(payload));
+            const fireForUnit = isCurrentTargetState(fireCommand, payload) && (
+                fireCommand.unit === assignedUnit ||
+                (Array.isArray(fireCommand.units) && fireCommand.units.includes(assignedUnit))
+            );
+            const canSendShot = fireForUnit || (isReady && isCountdownFireNow(payload, solution)) || (isReady && isWhenReadyFireNow(payload));
             if (!canSendShot) return;
 
-            localStorage.setItem("shotReport", JSON.stringify({
+            setUnitReport("shotReport", {
                 unit: assignedUnit,
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
                 shotAt: new Date().toISOString(),
-            }));
+            });
             setMissionUnitStatus("shot", payload);
             renderDfcs();
         }
@@ -776,12 +813,12 @@
             const shotReport = getShotReport();
             if (!isCurrentTargetState(shotReport, payload) || shotReport.unit !== assignedUnit) return;
 
-            localStorage.setItem("roundsCompleteReport", JSON.stringify({
+            setUnitReport("roundsCompleteReport", {
                 unit: assignedUnit,
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
                 completedAt: new Date().toISOString(),
-            }));
+            });
             setMissionUnitStatus("rounds complete", payload);
             renderDfcs();
         }
@@ -799,8 +836,11 @@
             const shotReport = getShotReport();
             const unitStatus = getMissionUnitStatus(payload);
             const isReady = isCurrentTargetState(readyState, payload) && readyState.unit === assignedUnit;
-            const isFireCommanded = isCurrentTargetState(fireCommand, payload) && fireCommand.unit === assignedUnit;
-            const isShotSent = (isCurrentTargetState(shotReport, payload) && shotReport.unit === assignedUnit) || unitStatus === "shot" || unitStatus === "rounds complete";
+            const isFireCommanded = isCurrentTargetState(fireCommand, payload) && (
+                fireCommand.unit === assignedUnit ||
+                (Array.isArray(fireCommand.units) && fireCommand.units.includes(assignedUnit))
+            );
+            const isShotSent = Boolean(shotReport) || unitStatus === "shot" || unitStatus === "rounds complete";
             const isRoundsComplete = unitStatus === "rounds complete";
 
             document.getElementById("unitAssignedNameDisplay").innerText = unitAssignedName;

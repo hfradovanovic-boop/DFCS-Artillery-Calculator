@@ -2176,10 +2176,26 @@
             if (!unit || !targetNumber) return;
             ["dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
                 const report = readJsonStorage(key);
-                if (report && report.targetNumber === targetNumber && report.unit === unit) {
+                if (!report) return;
+                if (report.units && report.units[unit] && report.units[unit].targetNumber === targetNumber) {
+                    delete report.units[unit];
+                    localStorage.setItem(key, JSON.stringify(report));
+                } else if (report.targetNumber === targetNumber && report.unit === unit) {
                     localStorage.removeItem(key);
                 }
             });
+        }
+
+        function getUnitReport(key, unitLabel, targetNumber = getCurrentTargetNumber()) {
+            const report = readJsonStorage(key);
+            if (!report || !unitLabel || !targetNumber) return null;
+            if (report.units && report.units[unitLabel] && report.units[unitLabel].targetNumber === targetNumber) {
+                return report.units[unitLabel];
+            }
+            if (report.unit === unitLabel && report.targetNumber === targetNumber) {
+                return report;
+            }
+            return null;
         }
 
         function getActiveFdcCallsign() {
@@ -2226,12 +2242,16 @@
             if (reportStatus) return reportStatus;
 
             const payload = readJsonStorage("latestFiringSolutions");
-            const readyState = readJsonStorage("dfcsReadyState");
-            const shotReport = readJsonStorage("shotReport");
-            if (shotReport && shotReport.targetNumber === targetNumber && shotReport.unit === unitLabel) {
+            const readyState = getUnitReport("dfcsReadyState", unitLabel, targetNumber);
+            const shotReport = getUnitReport("shotReport", unitLabel, targetNumber);
+            const roundsCompleteReport = getUnitReport("roundsCompleteReport", unitLabel, targetNumber);
+            if (roundsCompleteReport) {
+                return "rounds complete";
+            }
+            if (shotReport) {
                 return "shot";
             }
-            if (readyState && readyState.targetNumber === targetNumber && readyState.unit === unitLabel) {
+            if (readyState) {
                 return "ready";
             }
             if (payload && payload.targetNumber === targetNumber && Array.isArray(payload.recipients) && payload.recipients.includes(unitLabel)) {
@@ -2509,18 +2529,25 @@
         function getFireWorkflowStatus() {
             const targetNumber = getCurrentTargetNumber();
             const payload = readJsonStorage("latestFiringSolutions");
-            const readyState = readJsonStorage("dfcsReadyState");
+            const readyStore = readJsonStorage("dfcsReadyState");
             const fireCommand = readJsonStorage("fireCommand");
-            const shotReport = readJsonStorage("shotReport");
+            const shotStore = readJsonStorage("shotReport");
             const hasCurrentPayload = Boolean(payload && payload.targetNumber && payload.targetNumber === targetNumber && Array.isArray(payload.solutions) && payload.solutions.length);
-            const hasReady = Boolean(hasCurrentPayload && readyState && readyState.targetNumber === targetNumber);
+            const recipients = hasCurrentPayload && Array.isArray(payload.recipients) ? payload.recipients : [];
+            const readyUnits = recipients.filter(unit => getUnitReport("dfcsReadyState", unit, targetNumber));
+            const shotUnits = recipients.filter(unit => getUnitReport("shotReport", unit, targetNumber));
+            const firedUnits = hasCurrentPayload && fireCommand && fireCommand.targetNumber === targetNumber
+                ? (Array.isArray(fireCommand.units) ? fireCommand.units : (fireCommand.unit ? [fireCommand.unit] : []))
+                : [];
+            const readyUnfiredUnits = readyUnits.filter(unit => !firedUnits.includes(unit));
+            const hasReady = readyUnits.length > 0;
             const hasFire = Boolean(hasCurrentPayload && fireCommand && fireCommand.targetNumber === targetNumber);
-            const hasShot = Boolean(hasCurrentPayload && shotReport && shotReport.targetNumber === targetNumber);
+            const hasShot = shotUnits.length > 0;
             const isTimeOnTarget = Boolean(hasCurrentPayload && payload.engagementTiming === "Time on target");
             const isWhenReady = Boolean(hasCurrentPayload && payload.engagementTiming === "When Ready");
             const isAtMyCommand = Boolean(hasCurrentPayload && payload.engagementTiming === "At my command");
 
-            return { targetNumber, hasCurrentPayload, hasReady, hasFire, hasShot, isTimeOnTarget, isWhenReady, isAtMyCommand, readyState, shotReport };
+            return { targetNumber, hasCurrentPayload, hasReady, hasFire, hasShot, isTimeOnTarget, isWhenReady, isAtMyCommand, readyState: readyStore, shotReport: shotStore, readyUnits, shotUnits, firedUnits, readyUnfiredUnits };
         }
 
         function updateFireButtonState() {
@@ -2538,12 +2565,13 @@
             let canFire = false;
 
             if (status.hasShot) {
-                const unitName = status.shotReport.unitAssignedName || `Unit ${status.shotReport.unit || ""}`.trim();
-                message = `Shot received from ${unitName}`;
+                message = `Shot received from ${status.shotUnits.join(", ")}`;
             } else if (status.hasFire) {
-                message = "Fire sent, awaiting shot";
+                message = status.readyUnfiredUnits.length
+                    ? `Fire sent, ${status.readyUnfiredUnits.join(", ")} ready`
+                    : "Fire sent, awaiting shot";
             } else if (status.hasReady) {
-                const unitName = status.readyState.unitAssignedName || `Unit ${status.readyState.unit || ""}`.trim();
+                const unitName = status.readyUnits.join(", ");
                 if (status.isTimeOnTarget) {
                     message = `${unitName} ready, waiting on TOT countdown`;
                 } else if (status.isWhenReady) {
@@ -2565,7 +2593,7 @@
             }
 
             if (fireButton) {
-                fireButton.disabled = !canFire;
+                fireButton.disabled = !(canFire || (status.isAtMyCommand && status.readyUnfiredUnits.length > 0));
             }
             if (calculateButton) {
                 calculateButton.disabled = shouldLockCalculateButton();
@@ -2583,7 +2611,7 @@
 
         function fireMission() {
             const status = getFireWorkflowStatus();
-            if (!status.isAtMyCommand || !status.hasReady || status.hasFire) {
+            if (!status.isAtMyCommand || !status.hasReady || !status.readyUnfiredUnits.length) {
                 updateFireButtonState();
                 return;
             }
@@ -2591,8 +2619,7 @@
             localStorage.setItem("fireCommand", JSON.stringify({
                 commandId: `${status.targetNumber}-${Date.now()}`,
                 targetNumber: status.targetNumber,
-                unit: status.readyState.unit || "",
-                unitAssignedName: status.readyState.unitAssignedName || "",
+                units: Array.from(new Set([...status.firedUnits, ...status.readyUnfiredUnits])),
                 firedAt: new Date().toISOString(),
             }));
             updateFireButtonState();
@@ -3548,16 +3575,25 @@ ${getAmmoOptionsMarkup()}
         function getFireUnits() {
             const fireUnitSize = parseInt(localStorage.getItem("fireUnitSize"), 10) || 1;
             const labels = ["A", "B", "C", "D"];
+            let selectedLabels = [];
+            try {
+                selectedLabels = JSON.parse(localStorage.getItem("selectedFireUnits") || "[]");
+            } catch (error) {
+                selectedLabels = [];
+            }
+            if (!Array.isArray(selectedLabels) || selectedLabels.length === 0) {
+                selectedLabels = labels.slice(0, fireUnitSize);
+            }
+            selectedLabels = selectedLabels.filter(label => labels.includes(label)).slice(0, fireUnitSize);
             const units = [];
-            for (let i = 0; i < fireUnitSize && i < labels.length; i++) {
-                const label = labels[i];
+            for (let i = 0; i < selectedLabels.length; i++) {
+                const label = selectedLabels[i];
                 const prefix = getUnitStoragePrefix(label);
                 const location = localStorage.getItem(`${prefix}Location`) || localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "";
                 const altitude = parseInt(localStorage.getItem(`${prefix}Altitude`) || localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`), 10);
-                const callsign = localStorage.getItem(`${prefix}Callsign`) || localStorage.getItem(`firingUnit${label}Callsign`) || "";
                 units.push({
                     label,
-                    callsign,
+                    callsign: getActiveFdcCallsign(),
                     location,
                     altitude: Number.isNaN(altitude) ? 0 : altitude,
                     operationalStatus: getUnitOperationalStatus(label),
@@ -3568,7 +3604,7 @@ ${getAmmoOptionsMarkup()}
 
         function formatFireUnitHeader(units) {
             if (!units.length) return "None";
-            return units.map(u => `${u.label}${u.callsign ? " " + u.callsign : ""} ${u.location} ${u.altitude}`).join("\n");
+            return units.map(u => `${u.label}${getActiveFdcCallsign()} ${u.location || "awaiting grid"} ${u.altitude || "---"}`).join("\n");
         }
 
         function updateDistributionInputs() {

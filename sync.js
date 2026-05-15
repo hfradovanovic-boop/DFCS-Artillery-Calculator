@@ -5,6 +5,7 @@
     const staticSharedKeys = new Set([
         "weaponSystem",
         "fireUnitSize",
+        "selectedFireUnits",
         "pendingFiringSolutions",
         "latestFiringSolutions",
         "missionStatusReports",

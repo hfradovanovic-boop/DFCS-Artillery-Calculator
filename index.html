@@ -154,6 +154,18 @@
             padding: 10px;
         }
 
+        .unit-card label {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin: 0;
+        }
+
+        .unit-card input[type="checkbox"] {
+            width: auto;
+            margin-top: 3px;
+        }
+
         .unit-card.available {
             background-color: #003311;
         }
@@ -262,11 +274,6 @@
             </div>
 
             <div class="input-group">
-                <label for="firingUnitCallsignInput">Firing Unit Callsign</label>
-                <input id="firingUnitCallsignInput" type="text" placeholder="Callsign">
-            </div>
-
-            <div class="input-group">
                 <label for="firingUnitLocationInput">Firing Unit Location</label>
                 <input id="firingUnitLocationInput" type="text" maxlength="10" placeholder="Location">
                 <div class="note">10 figure grid</div>
@@ -358,7 +365,6 @@
             return {
                 label,
                 fdcCallsign,
-                callsign: localStorage.getItem(`${scopedPrefix}Callsign`) || localStorage.getItem(`${legacyPrefix}Callsign`) || "",
                 location: localStorage.getItem(`${scopedPrefix}Location`) || localStorage.getItem(`${legacyPrefix}Location`) || localStorage.getItem(`unit${label}Location`) || "",
                 altitude: localStorage.getItem(`${scopedPrefix}Altitude`) || localStorage.getItem(`${legacyPrefix}Altitude`) || localStorage.getItem(`unit${label}Altitude`) || "",
             };
@@ -372,17 +378,42 @@
 
         function renderAvailableUnits() {
             const units = UNIT_LABELS.map(getRegisteredUnit);
+            const selectedUnits = getSelectedFireUnits();
+            const maxUnits = parseInt(document.getElementById("fireUnitSize").value, 10) || 0;
             document.getElementById("availableUnitsList").innerHTML = units.map(unit => {
                 const available = unit.location && unit.altitude;
                 return `
                     <div class="unit-card ${available ? "available" : ""}">
-                        <div class="unit-title">Unit ${unit.label}${unit.callsign ? ` - ${unit.callsign}` : ""}</div>
-                        <div>FDC: ${unit.fdcCallsign}</div>
-                        <div>Location: ${unit.location || "Not registered"}</div>
-                        <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
+                        <label>
+                            <input type="checkbox" class="fdc-unit-checkbox" value="${unit.label}" ${selectedUnits.includes(unit.label) ? "checked" : ""} ${maxUnits && selectedUnits.length >= maxUnits && !selectedUnits.includes(unit.label) ? "disabled" : ""} onchange="updateSelectedFireUnits()">
+                            <div>
+                                <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
+                                <div>Location: ${unit.location || "Waiting for DFCS"}</div>
+                                <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
+                            </div>
+                        </label>
                     </div>
                 `;
             }).join("");
+        }
+
+        function getSelectedFireUnits() {
+            try {
+                const selected = JSON.parse(localStorage.getItem("selectedFireUnits") || "[]");
+                return Array.isArray(selected) ? selected.filter(label => UNIT_LABELS.includes(label)) : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function updateSelectedFireUnits() {
+            const maxUnits = parseInt(document.getElementById("fireUnitSize").value, 10) || 4;
+            let selected = Array.from(document.querySelectorAll(".fdc-unit-checkbox:checked")).map(input => input.value);
+            if (selected.length > maxUnits) {
+                selected = selected.slice(0, maxUnits);
+            }
+            localStorage.setItem("selectedFireUnits", JSON.stringify(selected));
+            renderAvailableUnits();
         }
 
         function enterFdc() {
@@ -400,25 +431,17 @@
                 return;
             }
 
-            const missingUnit = UNIT_LABELS.slice(0, fireUnitSize).find(label => {
-                const unit = getRegisteredUnit(label);
-                return !unit.location || !unit.altitude;
-            });
-            if (missingUnit) {
-                alert(`Unit ${missingUnit} has not registered a location and altitude yet.`);
-                return;
-            }
-
             localStorage.setItem("fdcCallsign", fdcCallsign);
             localStorage.setItem("weaponSystem", weaponSystem);
             localStorage.setItem("fireUnitSize", fireUnitSize.toString());
+            const selectedUnits = getSelectedFireUnits().slice(0, fireUnitSize);
+            localStorage.setItem("selectedFireUnits", JSON.stringify(selectedUnits));
             window.location.href = "home.html";
         }
 
         function loadFiringUnitInputs() {
             const label = document.getElementById("firingUnitLabel").value || "A";
             const unit = getRegisteredUnit(label);
-            document.getElementById("firingUnitCallsignInput").value = unit.callsign;
             document.getElementById("firingUnitLocationInput").value = unit.location;
             document.getElementById("firingUnitAltitudeInput").value = unit.altitude;
         }
@@ -426,14 +449,9 @@
         function enterFiringUnit() {
             const label = document.getElementById("firingUnitLabel").value || "A";
             const fdcCallsign = document.getElementById("firingUnitFdcCallsignInput").value || "1";
-            const callsign = document.getElementById("firingUnitCallsignInput").value.trim();
             const location = document.getElementById("firingUnitLocationInput").value.trim();
             const altitude = document.getElementById("firingUnitAltitudeInput").value.trim();
 
-            if (!callsign) {
-                alert("Please enter a firing unit callsign.");
-                return;
-            }
             if (!location) {
                 alert("Please enter the firing unit location.");
                 return;
@@ -445,12 +463,10 @@
 
             localStorage.setItem("assignedFiringUnit", label);
             localStorage.setItem("assignedFdcCallsign", fdcCallsign);
-            localStorage.setItem(`firingUnit${fdcCallsign}${label}Callsign`, callsign);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Location`, location);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
 
             // Compatibility for existing FDC/home lookup paths.
-            localStorage.setItem(`firingUnit${label}Callsign`, callsign);
             localStorage.setItem(`firingUnit${label}Location`, location);
             localStorage.setItem(`firingUnit${label}Altitude`, altitude);
             localStorage.setItem(`unit${label}Location`, location);
@@ -467,6 +483,7 @@
             updateSyncStatus();
             document.getElementById("weaponSystem").value = localStorage.getItem("weaponSystem") || "M777A2";
             document.getElementById("fireUnitSize").value = localStorage.getItem("fireUnitSize") || "";
+            document.getElementById("fireUnitSize").addEventListener("change", renderAvailableUnits);
             document.getElementById("fdcCallsignInput").value = localStorage.getItem("fdcCallsign") || "";
             document.getElementById("fdcCallsignInput").addEventListener("input", renderAvailableUnits);
             document.getElementById("firingUnitLabel").value = localStorage.getItem("assignedFiringUnit") || "A";
@@ -475,6 +492,11 @@
             document.getElementById("firingUnitFdcCallsignInput").addEventListener("change", loadFiringUnitInputs);
 
             selectRole(localStorage.getItem("setupRole") || "fdc");
+            window.addEventListener("dfcs-sync-update", () => {
+                if (document.getElementById("fdcSection").classList.contains("active")) {
+                    renderAvailableUnits();
+                }
+            });
         }
 
         initIndexPage();
