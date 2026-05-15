@@ -2081,6 +2081,10 @@
 
             const fireUnits = getFireUnits();
             document.getElementById("displayLocation").innerText = formatFireUnitHeader(fireUnits);
+            if (update.fdcCallsign && update.fdcCallsign !== getActiveFdcCallsign()) {
+                updateMissionStatusMonitor();
+                return;
+            }
             updateMissionStatusMonitor();
 
             if (!activeFiringSolutions.length || !getCurrentTargetNumber()) {
@@ -2178,8 +2182,18 @@
             });
         }
 
+        function getActiveFdcCallsign() {
+            return localStorage.getItem("fdcCallsign") || "1";
+        }
+
+        function getUnitStoragePrefix(unitLabel) {
+            return `firingUnit${getActiveFdcCallsign()}${unitLabel}`;
+        }
+
         function getUnitOperationalStatus(unitLabel) {
-            return localStorage.getItem(`firingUnit${unitLabel}OperationalStatus`) || "out of action";
+            return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}OperationalStatus`) ||
+                localStorage.getItem(`firingUnit${unitLabel}OperationalStatus`) ||
+                "out of action";
         }
 
         function isUnitMissionCapable(unitLabel) {
@@ -3537,9 +3551,10 @@ ${getAmmoOptionsMarkup()}
             const units = [];
             for (let i = 0; i < fireUnitSize && i < labels.length; i++) {
                 const label = labels[i];
-                const location = localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "";
-                const altitude = parseInt(localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`), 10);
-                const callsign = localStorage.getItem(`firingUnit${label}Callsign`) || "";
+                const prefix = getUnitStoragePrefix(label);
+                const location = localStorage.getItem(`${prefix}Location`) || localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "";
+                const altitude = parseInt(localStorage.getItem(`${prefix}Altitude`) || localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`), 10);
+                const callsign = localStorage.getItem(`${prefix}Callsign`) || localStorage.getItem(`firingUnit${label}Callsign`) || "";
                 units.push({
                     label,
                     callsign,

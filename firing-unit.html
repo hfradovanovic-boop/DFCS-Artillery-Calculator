@@ -159,16 +159,19 @@
     <script>
         function getFireUnits() {
             const fireUnitSize = parseInt(localStorage.getItem("fireUnitSize"), 10) || 1;
+            const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
             const labels = ["A", "B", "C", "D"];
             const units = [];
 
             for (let index = 0; index < fireUnitSize && index < labels.length; index++) {
                 const label = labels[index];
+                const prefix = `firingUnit${fdcCallsign}${label}`;
                 units.push({
                     label,
-                    callsign: localStorage.getItem(`firingUnit${label}Callsign`) || "",
-                    location: localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "---",
-                    altitude: localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`) || "---",
+                    fdcCallsign,
+                    callsign: localStorage.getItem(`${prefix}Callsign`) || localStorage.getItem(`firingUnit${label}Callsign`) || "",
+                    location: localStorage.getItem(`${prefix}Location`) || localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "---",
+                    altitude: localStorage.getItem(`${prefix}Altitude`) || localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`) || "---",
                 });
             }
 
@@ -177,6 +180,7 @@
 
         function setAssignedUnit(label) {
             localStorage.setItem("assignedFiringUnit", label);
+            localStorage.setItem("assignedFdcCallsign", localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1");
             window.location.href = "dfcs.html";
         }
 
@@ -191,6 +195,7 @@
                 <div class="unit-card ${unit.label === assignedUnit ? "active" : ""}">
                     <div>
                         <div class="unit-name">Unit ${unit.label}</div>
+                        <div>FDC: ${unit.fdcCallsign}</div>
                         <div>Callsign: ${unit.callsign || "---"}</div>
                         <div>Location: ${unit.location}</div>
                         <div>Altitude: ${unit.altitude} m</div>

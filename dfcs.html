@@ -404,12 +404,23 @@
             return localStorage.getItem("assignedFiringUnit") || "A";
         }
 
+        function getAssignedFdcCallsign() {
+            return localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+        }
+
+        function getUnitStoragePrefix(unit = getAssignedUnit()) {
+            return `firingUnit${getAssignedFdcCallsign()}${unit}`;
+        }
+
         function getUnitOperationalStatus(unit = getAssignedUnit()) {
-            return localStorage.getItem(`firingUnit${unit}OperationalStatus`) || "out of action";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}OperationalStatus`) ||
+                localStorage.getItem(`firingUnit${unit}OperationalStatus`) ||
+                "out of action";
         }
 
         function setUnitOperationalStatus(status, unit = getAssignedUnit()) {
             const normalizedStatus = status === "moving" ? "moving" : "stationary";
+            localStorage.setItem(`${getUnitStoragePrefix(unit)}OperationalStatus`, normalizedStatus);
             localStorage.setItem(`firingUnit${unit}OperationalStatus`, normalizedStatus);
         }
 
@@ -418,11 +429,16 @@
         }
 
         function getCurrentUnitLocation(unit = getAssignedUnit()) {
-            return localStorage.getItem(`firingUnit${unit}Location`) || localStorage.getItem(`unit${unit}Location`) || "";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}Location`) ||
+                localStorage.getItem(`firingUnit${unit}Location`) ||
+                localStorage.getItem(`unit${unit}Location`) ||
+                "";
         }
 
         function getPendingMovingLocation(unit = getAssignedUnit()) {
-            return localStorage.getItem(`firingUnit${unit}PendingLocation`) || "";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingLocation`) ||
+                localStorage.getItem(`firingUnit${unit}PendingLocation`) ||
+                "";
         }
 
         function applyMovingLocation() {
@@ -434,6 +450,7 @@
                 return;
             }
 
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`, grid);
             localStorage.setItem(`firingUnit${assignedUnit}PendingLocation`, grid);
             if (input) input.value = grid;
             renderDfcs();
@@ -444,11 +461,14 @@
             const pendingGrid = getPendingMovingLocation(assignedUnit);
             if (!pendingGrid) return;
 
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Location`, pendingGrid);
             localStorage.setItem(`firingUnit${assignedUnit}Location`, pendingGrid);
             localStorage.setItem(`unit${assignedUnit}Location`, pendingGrid);
+            localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`);
             localStorage.removeItem(`firingUnit${assignedUnit}PendingLocation`);
             localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
                 unit: assignedUnit,
+                fdcCallsign: getAssignedFdcCallsign(),
                 location: pendingGrid,
                 updatedAt: new Date().toISOString(),
                 updateId: `${assignedUnit}-${Date.now()}`,
@@ -465,6 +485,7 @@
                     alert("Enter and apply a 10 figure grid before setting stationary.");
                     return;
                 }
+                localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingLocation`, grid);
                 localStorage.setItem(`firingUnit${getAssignedUnit()}PendingLocation`, grid);
                 sendStationaryLocationUpdate();
             }
@@ -482,7 +503,7 @@
 
         function getUnitAssignedName() {
             const unit = getAssignedUnit();
-            const savedCallsign = localStorage.getItem("fdcCallsign") || "";
+            const savedCallsign = getAssignedFdcCallsign();
             const fdcCallsign = /^[1-4]$/.test(savedCallsign) ? savedCallsign : "";
             return `${unit}${fdcCallsign || "-"}`;
         }

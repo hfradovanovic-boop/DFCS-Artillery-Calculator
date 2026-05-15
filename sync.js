@@ -3,7 +3,6 @@
     const SESSION_KEY = "dfcsSessionCode";
     const REMOTE_PREFIX = "sessions";
     const staticSharedKeys = new Set([
-        "fdcCallsign",
         "weaponSystem",
         "fireUnitSize",
         "pendingFiringSolutions",
@@ -34,10 +33,16 @@
     unitLabels.forEach(label => {
         unitSharedSuffixes.forEach(suffix => {
             staticSharedKeys.add(`firingUnit${label}${suffix}`);
+            ["1", "2", "3", "4"].forEach(fdc => {
+                staticSharedKeys.add(`firingUnit${fdc}${label}${suffix}`);
+            });
         });
         staticSharedKeys.add(`unit${label}Location`);
         staticSharedKeys.add(`unit${label}Altitude`);
         staticSharedKeys.add(`dfcsDeniedMission${label}`);
+        ["1", "2", "3", "4"].forEach(fdc => {
+            staticSharedKeys.add(`dfcsDeniedMission${fdc}${label}`);
+        });
     });
 
     function normalizeSessionCode(value) {
