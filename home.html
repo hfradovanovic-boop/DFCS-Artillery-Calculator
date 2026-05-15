@@ -2032,7 +2032,7 @@
 
             let secondsUntilImpact = targetZuluSeconds - currentZuluSeconds;
             if (secondsUntilImpact < 0) {
-                secondsUntilImpact += 24 * 60 * 60;
+                return "FIRE NOW";
             }
 
             // Fire countdown is time remaining until target impact, less the round's time of flight.

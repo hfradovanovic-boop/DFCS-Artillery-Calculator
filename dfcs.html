@@ -758,7 +758,7 @@
 
             let secondsUntilImpact = targetZuluSeconds - getActiveZuluSeconds();
             if (secondsUntilImpact < 0) {
-                secondsUntilImpact += 24 * 60 * 60;
+                return "FIRE NOW";
             }
 
             const secondsUntilFire = secondsUntilImpact - timeOfFlightSeconds;
@@ -1059,6 +1059,7 @@
                 unit: assignedUnit,
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
+                missionInstanceId: getMissionInstanceId(payload),
                 shotAt: new Date().toISOString(),
             });
             setMissionUnitStatus("shot", payload);
