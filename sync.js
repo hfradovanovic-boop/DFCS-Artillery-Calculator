@@ -14,6 +14,8 @@
         "shotReport",
         "roundsCompleteReport",
         "missionDenyReport",
+        "dfcsPing",
+        "fdcPingAck",
         "firingUnitLocationUpdate",
         "endMissionReport",
         "fireWorkflowTarget",

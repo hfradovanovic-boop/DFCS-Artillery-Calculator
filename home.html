@@ -936,6 +936,17 @@
             flex-wrap: wrap;
         }
 
+        .connectivity-status {
+            margin: 0 0 10px;
+            border: 1px solid #00ccff;
+            background-color: #001b24;
+            color: #00ccff;
+            padding: 8px 10px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         .resend-notice button {
             background-color: #ffcc00;
             color: #000;
@@ -1663,6 +1674,7 @@
             <div class="right-section">
                 <div class="mission-status-box">
                     <div class="mission-status-title">Mission Status Monitor</div>
+                    <div class="connectivity-status" id="connectivityStatus">No DFCS ping received.</div>
                     <table class="mission-status-table">
                         <thead>
                             <tr>
@@ -1758,6 +1770,7 @@
         let activeFiringSolutions = [];
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
         let lastProcessedMissionDenyId = localStorage.getItem("lastProcessedMissionDenyId") || "";
+        let lastProcessedPingId = localStorage.getItem("lastProcessedPingId") || "";
         let unitSendMode = "accept";
         let recalculatingLocationUpdate = false;
 
@@ -1976,6 +1989,7 @@
             updateMissionStatusMonitor();
             processFiringUnitLocationUpdate();
             processMissionDenyReport();
+            processDfcsPing();
             zuluClockInterval = setInterval(() => {
                 updateZuluTimeDisplay();
                 updateLiveFireCountdowns();
@@ -1983,6 +1997,7 @@
                 updateMissionStatusMonitor();
                 processFiringUnitLocationUpdate();
                 processMissionDenyReport();
+                processDfcsPing();
             }, 1000);
         }
 
@@ -2135,6 +2150,43 @@
 
             updateFireButtonState();
             updateMissionStatusMonitor();
+        }
+
+        function formatConnectivityTime(value) {
+            if (!value) return "---";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "---";
+            return `${date.getUTCHours().toString().padStart(2, "0")}${date.getUTCMinutes().toString().padStart(2, "0")}${date.getUTCSeconds().toString().padStart(2, "0")}Z`;
+        }
+
+        function updateConnectivityStatus(message) {
+            const connectivityStatus = document.getElementById("connectivityStatus");
+            if (connectivityStatus && message) {
+                connectivityStatus.innerText = message;
+            }
+        }
+
+        function processDfcsPing() {
+            const ping = readJsonStorage("dfcsPing");
+            const activeFdc = getActiveFdcCallsign();
+            if (!ping || !ping.pingId || ping.fdcCallsign !== activeFdc) {
+                return;
+            }
+
+            updateConnectivityStatus(`Last ping from ${ping.unitAssignedName || `${ping.unit}${ping.fdcCallsign}`} at ${formatConnectivityTime(ping.sentAt)}`);
+            if (ping.pingId === lastProcessedPingId) {
+                return;
+            }
+
+            lastProcessedPingId = ping.pingId;
+            localStorage.setItem("lastProcessedPingId", ping.pingId);
+            localStorage.setItem("fdcPingAck", JSON.stringify({
+                pingId: ping.pingId,
+                unit: ping.unit,
+                fdcCallsign: ping.fdcCallsign,
+                unitAssignedName: ping.unitAssignedName,
+                ackAt: new Date().toISOString(),
+            }));
         }
 
         function readJsonStorage(key) {

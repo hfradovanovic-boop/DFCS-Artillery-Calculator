@@ -183,6 +183,22 @@
             background-color: #5a0000;
         }
 
+        .ping-button {
+            min-width: 90px;
+            background-color: #001b24;
+            color: #00ccff;
+            border: 1px solid #00ccff;
+            font-weight: bold;
+        }
+
+        .ping-status {
+            width: 100%;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #9dffbf;
+        }
+
         .movement-button {
             min-width: 150px;
             background-color: #000;
@@ -378,7 +394,9 @@
                 <button class="ready-button" id="readyButton" onclick="markReady()" disabled>READY</button>
                 <button class="rounds-complete-button" id="roundsCompleteButton" onclick="sendRoundsComplete()" disabled>ROUNDS COMPLETE</button>
                 <button class="deny-button" id="denyMissionButton" onclick="denyMission()" disabled>DENY</button>
+                <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
                 <div class="command-status" id="commandStatus">Waiting for FDC firing data.</div>
+                <div class="ping-status" id="pingStatus">Ping not sent.</div>
             </div>
 
             <div class="moving-location-panel" id="movingLocationPanel">
@@ -712,6 +730,47 @@
             return readJsonStorage("endMissionReport");
         }
 
+        function formatPingTime(value) {
+            if (!value) return "---";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return "---";
+            return `${date.getUTCHours().toString().padStart(2, "0")}${date.getUTCMinutes().toString().padStart(2, "0")}${date.getUTCSeconds().toString().padStart(2, "0")}Z`;
+        }
+
+        function sendPing() {
+            const assignedUnit = getAssignedUnit();
+            const ping = {
+                pingId: `${getAssignedFdcCallsign()}${assignedUnit}-${Date.now()}`,
+                unit: assignedUnit,
+                fdcCallsign: getAssignedFdcCallsign(),
+                unitAssignedName: getUnitAssignedName(),
+                sentAt: new Date().toISOString(),
+                location: getCurrentUnitLocation(assignedUnit),
+                operationalStatus: getUnitOperationalStatus(assignedUnit),
+            };
+            localStorage.setItem("dfcsPing", JSON.stringify(ping));
+            renderDfcs();
+        }
+
+        function updatePingStatus() {
+            const pingStatus = document.getElementById("pingStatus");
+            if (!pingStatus) return;
+
+            const assignedUnit = getAssignedUnit();
+            const ping = readJsonStorage("dfcsPing");
+            const ack = readJsonStorage("fdcPingAck");
+            const isThisUnitPing = ping && ping.unit === assignedUnit && ping.fdcCallsign === getAssignedFdcCallsign();
+            const isThisUnitAck = ack && ack.unit === assignedUnit && ack.fdcCallsign === getAssignedFdcCallsign();
+
+            if (isThisUnitAck && isThisUnitPing && ack.pingId === ping.pingId) {
+                pingStatus.innerText = `Ping acknowledged by FDC ${ack.fdcCallsign} at ${formatPingTime(ack.ackAt)}`;
+            } else if (isThisUnitPing) {
+                pingStatus.innerText = `Ping sent at ${formatPingTime(ping.sentAt)} - waiting for FDC`;
+            } else {
+                pingStatus.innerText = "Ping not sent.";
+            }
+        }
+
         function isEndMissionActive(payload) {
             const report = getEndMissionReport();
             return Boolean(report && !report.acknowledged && (!payload || !report.targetNumber || report.targetNumber === payload.targetNumber));
@@ -847,6 +906,7 @@
             document.getElementById("unitLocationDisplay").innerText = getCurrentUnitLocation(assignedUnit) || "---";
             document.getElementById("targetNumberDisplay").innerText = payload && payload.targetNumber ? payload.targetNumber : "---";
             document.getElementById("updatedAtDisplay").innerText = formatUpdatedAt(payload && payload.updatedAt);
+            updatePingStatus();
 
             const grid = document.getElementById("firingDataGrid");
             const emptyState = document.getElementById("emptyState");
