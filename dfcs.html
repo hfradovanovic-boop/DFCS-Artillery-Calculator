@@ -68,6 +68,19 @@
             flex-wrap: wrap;
         }
 
+        .sound-toggle-btn {
+            background-color: #001b24;
+            color: #00ccff;
+            border-color: #00ccff;
+            font-weight: bold;
+        }
+
+        .sound-toggle-btn.enabled {
+            background-color: #003311;
+            color: #00ff66;
+            border-color: #00ff66;
+        }
+
         button {
             background-color: #000;
             color: #00ff66;
@@ -425,6 +438,7 @@
                 <div class="assigned-name-value" id="unitLocationDisplay">---</div>
             </div>
             <div class="nav-actions">
+                <button type="button" class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleNotificationSoundEnabled()">SOUND OFF</button>
                 <button onclick="window.location.href='firing-unit.html'">UNIT SELECT</button>
                 <button onclick="window.location.href='index.html'">SETUP</button>
             </div>
@@ -497,6 +511,7 @@
         const NOTIFICATION_SOUND_SRC = "../notificationbeep1.mp3";
         let notificationAudio = null;
         const activeNotificationSounds = new Set();
+        let notificationSoundEnabled = localStorage.getItem("notificationSoundEnabled") === "true";
 
         function getNotificationAudio() {
             if (!notificationAudio) {
@@ -521,7 +536,7 @@
         function formatAudioError(error) {
             if (!error) return "Unknown audio error.";
             if (error.name === "NotAllowedError") {
-                return "Sound blocked by browser. Click/tap this page once, then try the notification again.";
+                return "Sound blocked by browser. Press SOUND OFF/ON again or interact with this page.";
             }
             if (error.name === "NotSupportedError") {
                 return `Sound file not supported or not found: ${NOTIFICATION_SOUND_SRC}`;
@@ -529,8 +544,48 @@
             return `Sound failed: ${error.name || "Error"} ${error.message || ""}`.trim();
         }
 
+        function updateSoundToggleButton() {
+            const button = document.getElementById("soundToggleBtn");
+            if (!button) return;
+            button.classList.toggle("enabled", notificationSoundEnabled);
+            button.innerText = notificationSoundEnabled ? "SOUND ON" : "SOUND OFF";
+        }
+
+        function toggleNotificationSoundEnabled() {
+            notificationSoundEnabled = !notificationSoundEnabled;
+            localStorage.setItem("notificationSoundEnabled", notificationSoundEnabled ? "true" : "false");
+            updateSoundToggleButton();
+
+            if (!notificationSoundEnabled) {
+                const audio = getNotificationAudio();
+                audio.pause();
+                audio.currentTime = 0;
+                showSoundStatus("Sound off.");
+                return;
+            }
+
+            const audio = getNotificationAudio();
+            audio.play()
+                .then(() => {
+                    showSoundStatus("Sound enabled.");
+                    if (activeNotificationSounds.size === 0) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                })
+                .catch(error => showSoundStatus(formatAudioError(error)));
+        }
+
         function updateNotificationSound() {
             const audio = getNotificationAudio();
+            if (!notificationSoundEnabled) {
+                audio.pause();
+                audio.currentTime = 0;
+                if (activeNotificationSounds.size > 0) {
+                    showSoundStatus("Notification received. Sound is off.");
+                }
+                return;
+            }
             if (activeNotificationSounds.size > 0) {
                 audio.play()
                     .then(() => showSoundStatus(""))
@@ -551,6 +606,7 @@
         }
 
         document.addEventListener("pointerdown", () => {
+            if (!notificationSoundEnabled) return;
             const audio = getNotificationAudio();
             audio.play()
                 .then(() => {
@@ -1360,6 +1416,7 @@
             ].join("");
         }
 
+        updateSoundToggleButton();
         writeDfcsPresence(true);
         renderDfcs();
         setInterval(renderDfcs, 1000);
