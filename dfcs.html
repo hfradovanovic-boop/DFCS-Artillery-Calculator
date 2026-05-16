@@ -428,6 +428,14 @@
                 <button type="button" onclick="acknowledgeTargetNotification()">ACKNOWLEDGE</button>
             </div>
 
+            <div class="target-notification" id="fdcPingNotification">
+                <div>
+                    <div class="target-notification-title">FDC PING</div>
+                    <div class="target-notification-detail" id="fdcPingText">Ping received from FDC.</div>
+                </div>
+                <button type="button" onclick="acknowledgeFdcPing()">ACKNOWLEDGE</button>
+            </div>
+
             <div class="summary-grid">
                 <div class="data-item">
                     <div class="data-label">TARGET NUMBER</div>
@@ -468,6 +476,37 @@
     </div>
 
     <script>
+        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
+        let notificationAudio = null;
+        const activeNotificationSounds = new Set();
+
+        function getNotificationAudio() {
+            if (!notificationAudio) {
+                notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
+                notificationAudio.loop = true;
+            }
+            return notificationAudio;
+        }
+
+        function updateNotificationSound() {
+            const audio = getNotificationAudio();
+            if (activeNotificationSounds.size > 0) {
+                audio.play().catch(() => {});
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        function setNotificationSound(reason, active) {
+            if (active) {
+                activeNotificationSounds.add(reason);
+            } else {
+                activeNotificationSounds.delete(reason);
+            }
+            updateNotificationSound();
+        }
+
         function getAssignedUnit() {
             return localStorage.getItem("assignedFiringUnit") || "A";
         }
@@ -628,6 +667,7 @@
                 setMissionUnitStatus("received mission", payload);
             }
             updateTargetReceivedNotification(payload);
+            setNotificationSound("dfcs-target", false);
             renderDfcs();
         }
 
@@ -649,6 +689,7 @@
             if (text && visible) {
                 text.innerText = `Mission ${payload.targetNumber} received for ${getUnitAssignedName()}.`;
             }
+            setNotificationSound("dfcs-target", visible);
             return visible;
         }
 
@@ -930,6 +971,47 @@
             renderDfcs();
         }
 
+        function getFdcPingAckKey() {
+            return `dfcsFdcPingAck${getAssignedFdcCallsign()}${getAssignedUnit()}`;
+        }
+
+        function acknowledgeFdcPing() {
+            const ping = readJsonStorage("fdcPing");
+            if (ping && ping.unit === getAssignedUnit() && ping.fdcCallsign === getAssignedFdcCallsign()) {
+                localStorage.setItem(getFdcPingAckKey(), ping.pingId);
+                localStorage.setItem("dfcsPingAck", JSON.stringify({
+                    pingId: ping.pingId,
+                    unit: getAssignedUnit(),
+                    fdcCallsign: getAssignedFdcCallsign(),
+                    unitAssignedName: getUnitAssignedName(),
+                    acknowledgedAt: new Date().toISOString(),
+                }));
+            }
+            updateFdcPingNotification();
+            setNotificationSound("dfcs-ping", false);
+        }
+
+        function updateFdcPingNotification() {
+            const panel = document.getElementById("fdcPingNotification");
+            const text = document.getElementById("fdcPingText");
+            if (!panel) return false;
+
+            const ping = readJsonStorage("fdcPing");
+            const isForThisUnit = ping &&
+                ping.unit === getAssignedUnit() &&
+                ping.fdcCallsign === getAssignedFdcCallsign();
+            const acknowledgedPingId = localStorage.getItem(getFdcPingAckKey()) || "";
+            const pingAgeMs = isForThisUnit ? Date.now() - Date.parse(ping.sentAt || "") : Infinity;
+            const visible = Boolean(isForThisUnit && ping.pingId !== acknowledgedPingId && (activeNotificationSounds.has("dfcs-ping") || (Number.isFinite(pingAgeMs) && pingAgeMs <= 60000)));
+
+            panel.classList.toggle("active", visible);
+            if (text && visible) {
+                text.innerText = `Ping received from FDC ${ping.fdcCallsign}.`;
+            }
+            setNotificationSound("dfcs-ping", visible);
+            return visible;
+        }
+
         function updatePingStatus() {
             const pingStatus = document.getElementById("pingStatus");
             if (!pingStatus) return;
@@ -1063,6 +1145,7 @@
                 shotAt: new Date().toISOString(),
             });
             setMissionUnitStatus("shot", payload);
+            setNotificationSound("dfcs-fire", false);
             renderDfcs();
         }
 
@@ -1108,6 +1191,7 @@
             document.getElementById("targetNumberDisplay").innerText = payload && payload.targetNumber ? payload.targetNumber : "---";
             document.getElementById("updatedAtDisplay").innerText = formatUpdatedAt(payload && payload.updatedAt);
             updatePingStatus();
+            updateFdcPingNotification();
 
             const grid = document.getElementById("firingDataGrid");
             const emptyState = document.getElementById("emptyState");
@@ -1194,6 +1278,7 @@
             const showFireWarning = Boolean(solution && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
             fireWarning.classList.toggle("active", showFireWarning);
             shotButton.disabled = !showFireWarning;
+            setNotificationSound("dfcs-fire", showFireWarning);
             if (showFireWarning && payload.engagementTiming === "Time on target") {
                 commandStatus.innerText = "TOT countdown complete.";
             } else if (showFireWarning && payload.engagementTiming === "When Ready") {

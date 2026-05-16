@@ -13,6 +13,8 @@
         "missionDenyReport",
         "dfcsPing",
         "fdcPingAck",
+        "fdcPing",
+        "dfcsPingAck",
         "firingUnitLocationUpdate",
         "endMissionReport",
         "fireWorkflowTarget",
