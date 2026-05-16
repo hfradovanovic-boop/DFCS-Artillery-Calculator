@@ -314,9 +314,9 @@
         }
 
         .sound-toggle-btn {
-            background-color: #001b24;
-            color: #00ccff;
-            border: 1px solid #00ccff;
+            background-color: #181818;
+            color: #d8d8d8;
+            border: 1px solid #777;
             padding: 8px 12px;
             cursor: pointer;
             font-size: 12px;
@@ -979,6 +979,13 @@
             border-color: #444;
             color: #666;
             cursor: not-allowed;
+        }
+
+        .fdc-ping-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .sound-status {
@@ -1724,7 +1731,7 @@
 
         <div class="mission-controls">
             <div class="end-mission-control">
-                <button id="endMissionToggleBtn" class="end-mission-btn" type="button">END MISSION ▾</button>
+                <button id="endMissionToggleBtn" class="dropdown-button" type="button">End Mission</button>
                 <div class="end-mission-menu" id="endMissionMenu">
                     <label for="battleDamageAssessmentInput">Battle Damage Assessment</label>
                     <textarea id="battleDamageAssessmentInput" placeholder="Optional BDA"></textarea>
@@ -1830,7 +1837,7 @@
                 <div class="mission-status-box">
                     <div class="mission-status-header">
                         <div class="mission-status-title">Mission Status Monitor</div>
-                        <button type="button" class="fdc-ping-button" id="fdcPingButton" onclick="sendFdcPing()" disabled>PING DFCS</button>
+                        <div class="fdc-ping-actions" id="fdcPingButtons"></div>
                     </div>
                     <div class="sound-status" id="soundStatus"></div>
                     <div class="connectivity-status" id="connectivityStatus"></div>
@@ -2387,17 +2394,19 @@
             updateFdcPingButtonState();
         }
 
-        function sendFdcPing() {
-            const ping = lastReceivedDfcsPing || readJsonStorage("dfcsPing");
-            if (!ping || !ping.unit || ping.fdcCallsign !== getActiveFdcCallsign()) {
+        function sendFdcPing(unitLabel = "") {
+            const activeFdc = getActiveFdcCallsign();
+            const fallbackPing = lastReceivedDfcsPing || readJsonStorage("dfcsPing");
+            const targetUnit = unitLabel || (fallbackPing && fallbackPing.unit) || "";
+            if (!targetUnit || !isDfcsPresenceActive(targetUnit)) {
                 return;
             }
 
             localStorage.setItem("fdcPing", JSON.stringify({
-                pingId: `${getActiveFdcCallsign()}${ping.unit}-${Date.now()}`,
-                unit: ping.unit,
-                fdcCallsign: getActiveFdcCallsign(),
-                unitAssignedName: ping.unitAssignedName || `${ping.unit}${getActiveFdcCallsign()}`,
+                pingId: `${activeFdc}${targetUnit}-${Date.now()}`,
+                unit: targetUnit,
+                fdcCallsign: activeFdc,
+                unitAssignedName: `${targetUnit}${activeFdc}`,
                 sentAt: new Date().toISOString(),
             }));
             acknowledgedDfcsPingAckId = "";
@@ -2407,14 +2416,7 @@
         }
 
         function updateFdcPingButtonState() {
-            const button = document.getElementById("fdcPingButton");
-            if (!button) return;
-            const ping = lastReceivedDfcsPing || readJsonStorage("dfcsPing");
-            const canPing = Boolean(ping && ping.unit && ping.fdcCallsign === getActiveFdcCallsign());
-            button.disabled = !canPing;
-            button.innerText = canPing
-                ? `PING ${ping.unit}${ping.fdcCallsign}`
-                : "PING DFCS";
+            updateMissionStatusMonitor();
         }
 
         function processDfcsPing() {
@@ -2760,6 +2762,20 @@
             return status === "moving" || status === "stationary";
         }
 
+        function updateFdcPingButtons() {
+            const container = document.getElementById("fdcPingButtons");
+            if (!container) return;
+
+            const activeLabels = ["A", "B", "C", "D"].filter(label => isDfcsPresenceActive(label));
+            container.innerHTML = activeLabels.length
+                ? activeLabels.map(label => `
+                    <button type="button" class="fdc-ping-button" onclick="sendFdcPing('${label}')">
+                        PING ${label}${getActiveFdcCallsign()}
+                    </button>
+                `).join("")
+                : `<button type="button" class="fdc-ping-button" disabled>PING DFCS</button>`;
+        }
+
         function initializeMissionStatuses(recipients = []) {
             const targetNumber = getCurrentTargetNumber();
             if (!targetNumber) return;
@@ -2847,6 +2863,7 @@
             const activeLabels = ["A", "B", "C", "D"];
             const activePayload = getActiveMissionPayload() || getPendingFiringPayload();
             const targetNumber = getCurrentTargetNumber() || (activePayload && activePayload.targetNumber) || "";
+            updateFdcPingButtons();
 
             body.innerHTML = activeLabels.map(label => `
                 <tr>

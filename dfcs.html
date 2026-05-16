@@ -69,9 +69,9 @@
         }
 
         .sound-toggle-btn {
-            background-color: #001b24;
-            color: #00ccff;
-            border-color: #00ccff;
+            background-color: #181818;
+            color: #d8d8d8;
+            border-color: #777;
             font-weight: bold;
         }
 
@@ -1416,6 +1416,7 @@
             }
 
             if (!solution) {
+                setNotificationSound("dfcs-fire", false);
                 grid.innerHTML = "";
                 emptyState.style.display = "block";
                 return;
