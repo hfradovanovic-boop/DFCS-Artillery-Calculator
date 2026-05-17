@@ -583,22 +583,24 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: minmax(320px, 1.25fr) minmax(360px, 0.95fr);
+            grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
             gap: 20px;
             align-items: start;
         }
 
         .main.collapsed .main-grid {
-            grid-template-columns: minmax(320px, 1.25fr) minmax(360px, 0.95fr);
+            grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
         }
 
         .left-section,
         .right-section {
             width: 100%;
+            min-width: 0;
         }
 
         .input-section {
             max-width: 100%;
+            min-width: 0;
         }
 
         .target-number-group {
@@ -611,8 +613,8 @@
 
         .engagement-controls {
             display: grid;
-            grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr);
-            gap: 12px;
+            grid-template-columns: minmax(340px, 1.2fr) minmax(240px, 0.8fr);
+            gap: 10px;
             align-items: start;
         }
 
@@ -623,7 +625,7 @@
 
         .ffe-row {
             display: grid;
-            grid-template-columns: 52px minmax(90px, 1fr) 64px;
+            grid-template-columns: 48px minmax(145px, 1fr) 54px 22px 78px;
             gap: 8px;
             align-items: center;
         }
@@ -640,27 +642,38 @@
             min-width: 0;
         }
 
+        .ffe-row select[id$="ChargeSelect"] {
+            font-size: 13px;
+            padding-left: 8px;
+            padding-right: 26px;
+        }
+
         .engagement-actions {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
 
         .engagement-button-row {
             display: grid;
-            grid-template-columns: repeat(3, minmax(120px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
             align-items: start;
+        }
+
+        .time-on-target-row {
+            grid-template-columns: minmax(0, 1fr) minmax(120px, 1fr);
         }
 
         .engagement-button {
             background-color: #000;
             color: #00ff66;
             border: 1px solid #00ff66;
-            padding: 10px 12px;
+            padding: 8px 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             border-radius: 4px;
-            min-width: 120px;
+            min-width: 0;
+            white-space: nowrap;
         }
 
         .engagement-button:hover {
@@ -674,15 +687,13 @@
 
         .time-on-target-input {
             display: none;
-            width: 120px;
+            width: 100%;
+            height: 34px;
+            box-sizing: border-box;
         }
 
         .time-on-target-input.visible {
             display: block;
-        }
-
-        .time-on-target-button {
-            grid-column: 1;
         }
 
         .sr-only-input {
@@ -1444,7 +1455,7 @@
             }
 
             .ffe-row {
-                grid-template-columns: 48px minmax(80px, 1fr) 58px;
+                grid-template-columns: 44px minmax(145px, 1fr) 52px 22px 72px;
             }
 
             .ffe-row select,
@@ -1455,7 +1466,7 @@
             }
 
             .engagement-button {
-                min-width: 110px;
+                min-width: 0;
             }
 
             .engagement-button-row {
@@ -1621,7 +1632,7 @@
             }
 
             .ffe-row {
-                grid-template-columns: 44px minmax(70px, 1fr) 54px;
+                grid-template-columns: 44px minmax(120px, 1fr) 52px 22px 72px;
             }
 
             .calculate-btn {
@@ -3300,6 +3311,42 @@
             return getValue("ffe1Select", "HE") || "HE";
         }
 
+        function getChargeOptionsMarkup() {
+            const maxCharge = getM777WeaponId() ? 5 : 4;
+            const options = [`<option value="">Auto</option>`];
+            for (let level = 1; level <= maxCharge; level++) {
+                options.push(`<option value="${level}">Ch ${level}</option>`);
+            }
+            return options.join("");
+        }
+
+        function getSelectedChargeOverride() {
+            const value = parseInt(getValue("ffe1ChargeSelect", getValue("chargeOverrideSelect", "")), 10);
+            return Number.isNaN(value) ? null : value;
+        }
+
+        function getFfeChargeText(id) {
+            const value = parseInt(getValue(id, ""), 10);
+            return Number.isNaN(value) ? "" : `Ch ${value}`;
+        }
+
+        function isHighAngleSelected() {
+            return getValue("highAngleInput", "false") === "true";
+        }
+
+        function getAngleModeMarkup() {
+            if (isMortarBallisticSelected()) {
+                return "";
+            }
+
+            return `
+                            <div class="engagement-button-row angle-mode-row">
+                                <button type="button" class="engagement-button active" id="lowAngleButton" onclick="setHighAngleMode(false)">Low Angle</button>
+                                <button type="button" class="engagement-button" id="highAngleButton" onclick="setHighAngleMode(true)">High Angle</button>
+                            </div>
+            `;
+        }
+
         function getEngagementControlsMarkup() {
             return `
                     <div class="engagement-controls">
@@ -3310,6 +3357,10 @@
 ${getAmmoOptionsMarkup()}
                                 </select>
                                 <input id="ffeRoundsInput" type="number" placeholder="0">
+                                <label for="ffe1ChargeSelect">Ch</label>
+                                <select id="ffe1ChargeSelect" aria-label="FFE 1 charge">
+${getChargeOptionsMarkup()}
+                                </select>
                             </div>
                             <div class="ffe-row">
                                 <label for="ffe2Select">FFE 2</label>
@@ -3317,12 +3368,19 @@ ${getAmmoOptionsMarkup()}
 ${getAmmoOptionsMarkup()}
                                 </select>
                                 <input id="ffe2RoundsInput" type="number" placeholder="0">
+                                <label for="ffe2ChargeSelect">Ch</label>
+                                <select id="ffe2ChargeSelect" aria-label="FFE 2 charge">
+${getChargeOptionsMarkup()}
+                                </select>
                             </div>
                         </div>
                         <div class="engagement-actions">
-                            <div class="engagement-button-row">
+${getAngleModeMarkup()}
+                            <div class="engagement-button-row timing-mode-row">
                                 <button type="button" class="engagement-button active" data-engagement-mode="When Ready" onclick="setEngagementTimingMode('When Ready')">When Ready</button>
                                 <button type="button" class="engagement-button" data-engagement-mode="At my command" onclick="setEngagementTimingMode('At my command')">At my command</button>
+                            </div>
+                            <div class="engagement-button-row time-on-target-row">
                                 <button type="button" class="engagement-button time-on-target-button" data-engagement-mode="Time on target" onclick="setEngagementTimingMode('Time on target')">Time on target</button>
                                 <input class="time-on-target-input" id="timeOnTargetInput" type="text" inputmode="numeric" maxlength="6" placeholder="HHMMSS">
                             </div>
@@ -3330,6 +3388,7 @@ ${getAmmoOptionsMarkup()}
                     </div>
                     <input class="sr-only-input" type="hidden" id="atMyCommandInput" value="false">
                     <input class="sr-only-input" type="hidden" id="dangerCloseInput" value="false">
+                    <input class="sr-only-input" type="hidden" id="highAngleInput" value="false">
                     <input class="sr-only-input" type="hidden" id="engagementTimingInput" value="When Ready">
             `;
         }
@@ -3357,6 +3416,22 @@ ${getAmmoOptionsMarkup()}
             });
 
             updateLiveFireCountdowns();
+        }
+
+        function setHighAngleMode(enabled) {
+            const input = document.getElementById("highAngleInput");
+            if (input) {
+                input.value = Boolean(enabled) ? "true" : "false";
+            }
+
+            const button = document.getElementById("highAngleButton");
+            if (button) {
+                button.classList.toggle("active", Boolean(enabled));
+            }
+            const lowButton = document.getElementById("lowAngleButton");
+            if (lowButton) {
+                lowButton.classList.toggle("active", !Boolean(enabled));
+            }
         }
 
         function setDangerClose(enabled) {
@@ -3656,8 +3731,11 @@ ${getAmmoOptionsMarkup()}
             setValue("ffeRoundsInput", "");
             setValue("ffe2Select", "");
             setValue("ffe2RoundsInput", "");
+            setValue("ffe1ChargeSelect", "");
+            setValue("ffe2ChargeSelect", "");
             setEngagementTimingMode("When Ready");
             setValue("timeOnTargetInput", "");
+            setHighAngleMode(false);
             setDangerClose(false);
             setFireControlMode("Fire for Effect");
 
@@ -3671,8 +3749,11 @@ ${getAmmoOptionsMarkup()}
             setValue("ffeRoundsInput", "");
             setValue("ffe2Select", "");
             setValue("ffe2RoundsInput", "");
+            setValue("ffe1ChargeSelect", "");
+            setValue("ffe2ChargeSelect", "");
             setEngagementTimingMode("When Ready");
             setValue("timeOnTargetInput", "");
+            setHighAngleMode(false);
             setDangerClose(false);
             setFireControlMode("Fire for Effect");
 
@@ -3838,10 +3919,13 @@ ${getAmmoOptionsMarkup()}
             inputs.ffeRoundsInput = getValue("ffeRoundsInput", "");
             inputs.ffe2Select = getValue("ffe2Select", "");
             inputs.ffe2RoundsInput = getValue("ffe2RoundsInput", "");
+            inputs.ffe1ChargeSelect = getValue("ffe1ChargeSelect", getValue("chargeOverrideSelect", ""));
+            inputs.ffe2ChargeSelect = getValue("ffe2ChargeSelect", "");
             inputs.engagementTimingInput = getValue("engagementTimingInput", "When Ready");
             inputs.timeOnTargetInput = getValue("timeOnTargetInput", "");
             inputs.atMyCommandCheckbox = getValue("atMyCommandInput", "false") === "true";
             inputs.dangerCloseCheckbox = getValue("dangerCloseInput", "false") === "true";
+            inputs.highAngle = isHighAngleSelected();
             inputs.methodOfFireControlInput = getValue("methodOfFireControlInput", "");
             
             // Adjustment inputs
@@ -3925,6 +4009,14 @@ ${getAmmoOptionsMarkup()}
                 const ffe2RoundsInput = document.getElementById("ffe2RoundsInput");
                 if (ffe2RoundsInput) ffe2RoundsInput.value = inputs.ffe2RoundsInput;
             }
+            if (inputs.ffe1ChargeSelect !== undefined || inputs.chargeOverrideSelect !== undefined) {
+                const ffe1ChargeSelect = document.getElementById("ffe1ChargeSelect");
+                if (ffe1ChargeSelect) ffe1ChargeSelect.value = inputs.ffe1ChargeSelect !== undefined ? inputs.ffe1ChargeSelect : inputs.chargeOverrideSelect;
+            }
+            if (inputs.ffe2ChargeSelect !== undefined) {
+                const ffe2ChargeSelect = document.getElementById("ffe2ChargeSelect");
+                if (ffe2ChargeSelect) ffe2ChargeSelect.value = inputs.ffe2ChargeSelect;
+            }
             if (inputs.timeOnTargetInput !== undefined) {
                 const timeOnTargetInput = document.getElementById("timeOnTargetInput");
                 if (timeOnTargetInput) timeOnTargetInput.value = inputs.timeOnTargetInput;
@@ -3938,6 +4030,9 @@ ${getAmmoOptionsMarkup()}
             }
             if (inputs.dangerCloseCheckbox !== undefined) {
                 setDangerClose(inputs.dangerCloseCheckbox);
+            }
+            if (inputs.highAngle !== undefined) {
+                setHighAngleMode(inputs.highAngle);
             }
             if (inputs.methodOfFireControlInput !== undefined) {
                 setFireControlMode(inputs.methodOfFireControlInput);
@@ -3971,25 +4066,31 @@ ${getAmmoOptionsMarkup()}
             const rounds1 = getValue("ffeRoundsInput", "");
             const ffe2 = getValue("ffe2Select", "");
             const rounds2 = getValue("ffe2RoundsInput", "");
+            const ffe1Charge = getFfeChargeText("ffe1ChargeSelect");
+            const ffe2Charge = getFfeChargeText("ffe2ChargeSelect");
             const engagementTiming = getValue("engagementTimingInput", "When Ready");
             const timeOnTarget = getValue("timeOnTargetInput", "");
             const dangerClose = getValue("dangerCloseInput", "false") === "true";
+            const highAngle = isHighAngleSelected();
             const isAdjustFire = getFireControlMode() === "Adjust Fire";
             
             let str = "";
             if (isAdjustFire) {
                 const effects = [];
-                if (ffe1) effects.push(`FFE 1 ${ffe1}`);
-                if (ffe2) effects.push(`FFE 2 ${ffe2}`);
+                if (ffe1) effects.push(`FFE 1 ${ffe1}${ffe1Charge ? " " + ffe1Charge : ""}`);
+                if (ffe2) effects.push(`FFE 2 ${ffe2}${ffe2Charge ? " " + ffe2Charge : ""}`);
                 str = `1 round in effect${effects.length ? " - " + effects.join(" / ") : ""}`;
             } else {
                 if (ffe1) str += ffe1;
                 if (rounds1) str += " " + rounds1;
+                if (ffe1Charge) str += " " + ffe1Charge;
                 if (ffe2) str += " / " + ffe2;
                 if (rounds2) str += " " + rounds2;
+                if (ffe2Charge) str += " " + ffe2Charge;
             }
             if (engagementTiming === "At my command") str += " AMC";
             if (engagementTiming === "Time on target") str += ` TOT${timeOnTarget ? " " + timeOnTarget : ""}`;
+            if (highAngle) str += " HA";
             if (dangerClose) str += " D/C";
             return str.trim();
         }
@@ -4194,7 +4295,7 @@ ${getAmmoOptionsMarkup()}
             return null;
         }
 
-        function calculateMortarFiringData(range, ammunitionType, ballisticData, weaponSystem) {
+        function calculateMortarFiringData(range, ammunitionType, ballisticData, weaponSystem, forcedChargeLevel = null) {
             const weaponData = getMortarWeaponData(ballisticData, weaponSystem);
             if (!weaponData) {
                 return null;
@@ -4206,14 +4307,21 @@ ${getAmmoOptionsMarkup()}
                 return null;
             }
 
-            const availableCharges = shell.charges
-                .filter(charge => range >= charge.minRange && range <= charge.maxRange)
-                .sort((a, b) => a.level - b.level);
-            const charge = availableCharges[0];
-            if (!charge) {
+            const chargeCandidates = forcedChargeLevel === null
+                ? shell.charges.filter(charge => range >= charge.minRange && range <= charge.maxRange)
+                : shell.charges.filter(charge => charge.level === forcedChargeLevel && range >= charge.minRange && range <= charge.maxRange);
+            const rankedCharges = chargeCandidates
+                .map(charge => ({
+                    charge,
+                    interpolated: interpolateRangeTable(range, charge.rangeTable)
+                }))
+                .filter(candidate => candidate.interpolated && candidate.interpolated.tof !== null && candidate.interpolated.tof !== undefined)
+                .sort((a, b) => a.interpolated.tof - b.interpolated.tof);
+            const selected = rankedCharges[0];
+            if (!selected) {
                 return {
                     ammunition: shell.type,
-                    charge: "N/A",
+                    charge: forcedChargeLevel === null ? "N/A" : forcedChargeLevel,
                     elevation: "N/A",
                     time: "N/A",
                     milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
@@ -4221,16 +4329,11 @@ ${getAmmoOptionsMarkup()}
                 };
             }
 
-            const interpolated = interpolateRangeTable(range, charge.rangeTable);
-            if (!interpolated) {
-                return null;
-            }
-
             return {
                 ammunition: shell.type,
-                charge: charge.level,
-                elevation: interpolated.elevation,
-                time: interpolated.tof,
+                charge: selected.charge.level,
+                elevation: selected.interpolated.elevation,
+                time: selected.interpolated.tof,
                 milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                 outOfRange: false,
             };
@@ -4244,7 +4347,7 @@ ${getAmmoOptionsMarkup()}
             return selected ? selected.level : null;
         }
 
-        function calculateM777FiringData(range, ammunitionType, heightDiffM, ballisticData, weaponSystem) {
+        function calculateM777FiringData(range, ammunitionType, heightDiffM, ballisticData, weaponSystem, forcedChargeLevel = null, highAngleOnly = false) {
             const weaponData = getM777WeaponData(ballisticData, weaponSystem);
             if (!weaponData) {
                 return null;
@@ -4256,12 +4359,36 @@ ${getAmmoOptionsMarkup()}
                 return null;
             }
 
-            const selectedLevel = getM777AutoCharge(range, weaponData);
-            const charge = shell.charges.find(item => item.level === selectedLevel);
-            if (!charge || range < charge.minRange || range > charge.maxRange) {
+            const heightHundreds = (Number(heightDiffM) || 0) / 100;
+            const chargeCandidates = forcedChargeLevel === null
+                ? shell.charges.filter(charge => range >= charge.minRange && range <= charge.maxRange)
+                : shell.charges.filter(charge => charge.level === forcedChargeLevel && range >= charge.minRange && range <= charge.maxRange);
+            const rankedCharges = chargeCandidates
+                .map(charge => {
+                    const interpolated = interpolateRangeTable(range, charge.rangeTable);
+                    if (!interpolated) return null;
+
+                    const maxRangeRow = charge.rangeTable.reduce((best, row) => row.range > best.range ? row : best, charge.rangeTable[0]);
+                    const highElevation = interpolated.elevation - (Number(interpolated.dElev) || 0) * heightHundreds;
+                    const highTime = interpolated.tof - (Number(interpolated.tofPer100m) || 0) * heightHundreds;
+                    const apexElevation = maxRangeRow.elevation - (Number(maxRangeRow.dElev) || 0) * heightHundreds;
+                    const apexTime = maxRangeRow.tof - (Number(maxRangeRow.tofPer100m) || 0) * heightHundreds;
+                    const lowElevation = Math.max(0, apexElevation - (highElevation - apexElevation));
+                    const lowTime = Math.max(0.1, apexTime - (highTime - apexTime));
+                    return {
+                        charge,
+                        elevation: highAngleOnly ? highElevation : lowElevation,
+                        time: highAngleOnly ? highTime : lowTime,
+                        maxRangeElevation: apexElevation
+                    };
+                })
+                .filter(candidate => candidate && (!highAngleOnly || candidate.elevation >= candidate.maxRangeElevation))
+                .sort((a, b) => a.time - b.time);
+            const selected = rankedCharges[0];
+            if (!selected) {
                 return {
                     ammunition: shell.type,
-                    charge: selectedLevel || "N/A",
+                    charge: forcedChargeLevel === null ? "N/A" : forcedChargeLevel,
                     elevation: "N/A",
                     time: "N/A",
                     milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
@@ -4269,20 +4396,11 @@ ${getAmmoOptionsMarkup()}
                 };
             }
 
-            const interpolated = interpolateRangeTable(range, charge.rangeTable);
-            if (!interpolated) {
-                return null;
-            }
-
-            const heightHundreds = (Number(heightDiffM) || 0) / 100;
-            const elevation = interpolated.elevation - (Number(interpolated.dElev) || 0) * heightHundreds;
-            const time = interpolated.tof - (Number(interpolated.tofPer100m) || 0) * heightHundreds;
-
             return {
                 ammunition: shell.type,
-                charge: charge.level,
-                elevation,
-                time,
+                charge: selected.charge.level,
+                elevation: selected.elevation,
+                time: selected.time,
                 milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                 outOfRange: false,
             };
@@ -4541,7 +4659,7 @@ ${getAmmoOptionsMarkup()}
                     const dx = aim.x - gunPoint.x;
                     const dy = aim.y - gunPoint.y;
                     const range = Math.hypot(dx, dy);
-                    const elevationRad = computeElevation(range, targetAltitude - unit.altitude, 900, 0.02);
+                    const elevationRad = computeElevation(range, targetAltitude - unit.altitude, 900, 0.02, !isMortarBallisticSelected() && isHighAngleSelected());
                     if (elevationRad !== null) {
                         const velocity = 900;
                         const g = 9.81;
@@ -4644,6 +4762,7 @@ ${getEngagementControlsMarkup()}
 
             setFireControlMode(getFireControlMode());
             setEngagementTimingMode(getValue("engagementTimingInput", "When Ready"));
+            setHighAngleMode(false);
             setDangerClose(false);
             setupCalculateButton();
             updateFireButtonState();
@@ -4733,6 +4852,7 @@ ${getEngagementControlsMarkup()}
 
             setFireControlMode(getFireControlMode());
             setEngagementTimingMode(getValue("engagementTimingInput", "When Ready"));
+            setHighAngleMode(false);
             setDangerClose(false);
             setupCalculateButton();
             updateFireButtonState();
@@ -4848,7 +4968,7 @@ ${getEngagementControlsMarkup()}
             `;
         }
 
-        function computeElevation(range, deltaHeight, velocity, drag) {
+        function computeElevation(range, deltaHeight, velocity, drag, highAngle = false) {
             const g = 9.81;
             const v = Math.max(1, velocity);
             const discriminant = v * v * v * v - g * (g * range * range + 2 * deltaHeight * v * v);
@@ -4857,8 +4977,9 @@ ${getEngagementControlsMarkup()}
             }
 
             const root = Math.sqrt(discriminant);
-            const lowAngle = Math.atan((v * v - root) / (g * range));
-            const elevationRad = Math.max(0, lowAngle);
+            const numerator = highAngle ? v * v + root : v * v - root;
+            const firingAngle = Math.atan(numerator / (g * range));
+            const elevationRad = Math.max(0, firingAngle);
             const dragCorrection = (drag || 0) * range * 0.0004;
             return elevationRad + dragCorrection;
         }
@@ -4893,6 +5014,8 @@ ${getEngagementControlsMarkup()}
             const fireUnits = getFireUnits();
             const velocity = systemConfig.projectileVelocity;
             const drag = systemConfig.dragCoefficient;
+            const forcedChargeLevel = getSelectedChargeOverride();
+            const highAngleOnly = !getMortarWeaponId(systemConfig.weaponSystem) && isHighAngleSelected();
             let m777Data = null;
             let mortarData = null;
 
@@ -4951,7 +5074,7 @@ ${getEngagementControlsMarkup()}
                         return;
                     }
                     if (Number.isNaN(direction)) {
-                        alert("Please enter a valid direction (bearing in degrees)");
+                        alert("Please enter a valid direction (bearing in mils)");
                         return;
                     }
                     if (Number.isNaN(offsetDistance)) {
@@ -4959,7 +5082,7 @@ ${getEngagementControlsMarkup()}
                         return;
                     }
 
-                    const directionRad = direction * Math.PI / 180;
+                    const directionRad = (direction / 6400) * 2 * Math.PI;
                     targetPoint = {
                         x: referencePoint.x + Math.sin(directionRad) * offsetDistance,
                         y: referencePoint.y + Math.cos(directionRad) * offsetDistance,
@@ -5039,14 +5162,14 @@ ${getEngagementControlsMarkup()}
                 const usesMortarBallisticData = Boolean(getMortarWeaponId(systemConfig.weaponSystem));
                 const ammunitionType = getSelectedAmmunitionType();
                 const m777FiringData = usesM777BallisticData
-                    ? calculateM777FiringData(range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem)
+                    ? calculateM777FiringData(range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem, forcedChargeLevel, highAngleOnly)
                     : null;
                 const mortarFiringData = usesMortarBallisticData
-                    ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem)
+                    ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem, forcedChargeLevel)
                     : null;
                 const tableFiringData = m777FiringData || mortarFiringData;
                 const usesTableFiringData = usesM777BallisticData || usesMortarBallisticData;
-                const elevationRad = usesTableFiringData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag);
+                const elevationRad = usesTableFiringData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag, highAngleOnly);
                 const elevationDeg = elevationRad === null ? null : elevationRad * 180 / Math.PI;
                 const timeOfFlight = elevationRad === null ? null : range / Math.max(0.1, velocity * Math.cos(elevationRad));
                 const bearingMils = tableFiringData ? bearingDeg * ((tableFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
