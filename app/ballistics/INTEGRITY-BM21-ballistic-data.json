@@ -1,0 +1,477 @@
+{
+  "systemType": "mlrs",
+  "id": "INTEGRITY_BM21",
+  "name": "Integrity BM-21 Grad 122mm MLRS",
+  "caliber": 122,
+  "milSystem": {
+    "name": "Warsaw Pact",
+    "milsPerCircle": 6000,
+    "milsPerDegree": 16.6667
+  },
+  "projectileTypes": [
+    {
+      "id": "9M22M_122mm_he",
+      "name": "9M22M 122mm HE",
+      "type": "HE",
+      "variant": "standard",
+      "minRange": 400,
+      "maxRange": 8000,
+      "ballisticTable": [
+        {
+          "range": 400,
+          "elevation": 14,
+          "tof": 1.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 500,
+          "elevation": 1,
+          "tof": 0.1,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 800,
+          "elevation": 29,
+          "tof": 2.4,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1200,
+          "elevation": 43,
+          "tof": 3.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1600,
+          "elevation": 58,
+          "tof": 5.9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2000,
+          "elevation": 72,
+          "tof": 7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2400,
+          "elevation": 87,
+          "tof": 8.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2800,
+          "elevation": 101,
+          "tof": 9.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3200,
+          "elevation": 116,
+          "tof": 10.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3600,
+          "elevation": 130,
+          "tof": 11.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4000,
+          "elevation": 145,
+          "tof": 12.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4400,
+          "elevation": 159,
+          "tof": 14,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4800,
+          "elevation": 174,
+          "tof": 15.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5200,
+          "elevation": 189,
+          "tof": 16.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5600,
+          "elevation": 209,
+          "tof": 18.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6000,
+          "elevation": 229,
+          "tof": 19.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6400,
+          "elevation": 249,
+          "tof": 21.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6800,
+          "elevation": 270,
+          "tof": 22.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7200,
+          "elevation": 293,
+          "tof": 24.6,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7600,
+          "elevation": 319,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 8000,
+          "elevation": 346,
+          "tof": 26.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        }
+      ]
+    },
+    {
+      "id": "9M43_122mm_smoke",
+      "name": "9M43 122mm Smoke",
+      "type": "Smoke",
+      "variant": "standard",
+      "minRange": 400,
+      "maxRange": 8000,
+      "ballisticTable": [
+        {
+          "range": 400,
+          "elevation": 18,
+          "tof": 1.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 500,
+          "elevation": 2,
+          "tof": 0.1,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 800,
+          "elevation": 36,
+          "tof": 2.6,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1200,
+          "elevation": 54,
+          "tof": 3.9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1600,
+          "elevation": 72,
+          "tof": 5.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2000,
+          "elevation": 90,
+          "tof": 6.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2400,
+          "elevation": 108,
+          "tof": 7.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2800,
+          "elevation": 126,
+          "tof": 9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3200,
+          "elevation": 144,
+          "tof": 10.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3600,
+          "elevation": 162,
+          "tof": 11.6,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4000,
+          "elevation": 180,
+          "tof": 12.9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4400,
+          "elevation": 201,
+          "tof": 14.4,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4800,
+          "elevation": 225,
+          "tof": 16,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5200,
+          "elevation": 249,
+          "tof": 17.6,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5600,
+          "elevation": 273,
+          "tof": 19.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6000,
+          "elevation": 302,
+          "tof": 21,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6400,
+          "elevation": 333,
+          "tof": 23,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6800,
+          "elevation": 364,
+          "tof": 25,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7200,
+          "elevation": 403,
+          "tof": 27.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7600,
+          "elevation": 446,
+          "tof": 29.9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 8000,
+          "elevation": 501,
+          "tof": 33,
+          "windDrift100m": null,
+          "angleOfFall": null
+        }
+      ]
+    },
+    {
+      "id": "3M16_122mm_ap",
+      "name": "3M16 122mm Anti-Personnel",
+      "type": "Cluster",
+      "variant": "standard",
+      "minRange": 400,
+      "maxRange": 7600,
+      "ballisticTable": [
+        {
+          "range": 400,
+          "elevation": 20,
+          "tof": 1.4,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 490,
+          "elevation": 2,
+          "tof": 0.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 800,
+          "elevation": 40,
+          "tof": 2.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1200,
+          "elevation": 60,
+          "tof": 4.1,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1600,
+          "elevation": 80,
+          "tof": 5.4,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2000,
+          "elevation": 100,
+          "tof": 6.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2400,
+          "elevation": 120,
+          "tof": 8.1,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2800,
+          "elevation": 140,
+          "tof": 9.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3200,
+          "elevation": 160,
+          "tof": 10.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 3600,
+          "elevation": 180,
+          "tof": 12.2,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4000,
+          "elevation": 204,
+          "tof": 13.7,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4400,
+          "elevation": 230,
+          "tof": 15.4,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 4800,
+          "elevation": 256,
+          "tof": 17.1,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5200,
+          "elevation": 283,
+          "tof": 18.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 5600,
+          "elevation": 317,
+          "tof": 20.8,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6000,
+          "elevation": 351,
+          "tof": 22.9,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6400,
+          "elevation": 388,
+          "tof": 25,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 6800,
+          "elevation": 434,
+          "tof": 27.6,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7200,
+          "elevation": 486,
+          "tof": 30.5,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 7600,
+          "elevation": 559,
+          "tof": 34.3,
+          "windDrift100m": null,
+          "angleOfFall": null
+        }
+      ]
+    }
+  ]
+}

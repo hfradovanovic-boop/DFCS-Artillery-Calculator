@@ -1,0 +1,82 @@
+{
+  "systemType": "mlrs",
+  "id": "TYPE63",
+  "name": "WZ Type-63 107mm",
+  "caliber": 107,
+  "milSystem": {
+    "name": "NATO",
+    "milsPerCircle": 6400,
+    "milsPerDegree": 17.7778
+  },
+  "projectileTypes": [
+    {
+      "id": "type63_he_low_angle",
+      "name": "Type-63 HE Low Angle",
+      "type": "HE",
+      "variant": "low_angle",
+      "minRange": 500,
+      "maxRange": 2250,
+      "ballisticTable": [
+        {
+          "range": 500,
+          "elevation": 89,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1000,
+          "elevation": 196,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 1500,
+          "elevation": 320,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2000,
+          "elevation": 480,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2250,
+          "elevation": 800,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        }
+      ]
+    },
+    {
+      "id": "type63_he_high_angle",
+      "name": "Type-63 HE High Angle",
+      "type": "HE",
+      "variant": "high_angle",
+      "minRange": 1750,
+      "maxRange": 2250,
+      "ballisticTable": [
+        {
+          "range": 1750,
+          "elevation": 1067,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        },
+        {
+          "range": 2250,
+          "elevation": 800,
+          "tof": null,
+          "windDrift100m": null,
+          "angleOfFall": null
+        }
+      ]
+    }
+  ]
+}
