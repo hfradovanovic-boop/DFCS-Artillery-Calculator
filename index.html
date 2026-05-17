@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Fire Control System</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0b0f0b;
+            color: #00ff66;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 460px;
+            padding: 40px;
+            border: 2px solid #00ff66;
+            background-color: #111;
+            box-shadow: 0 0 20px rgba(0,255,102,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 30px;
+            margin: 0 0 28px;
+            letter-spacing: 2px;
+        }
+
+        .role-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .session-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 22px;
+        }
+
+        .session-row .input-group {
+            margin-bottom: 0;
+        }
+
+        .session-btn {
+            padding: 13px 14px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .sync-status {
+            margin: -10px 0 20px;
+            font-size: 12px;
+            opacity: 0.75;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            box-sizing: border-box;
+        }
+
+        select {
+            border-width: 2px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ff66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0,255,102,0.5);
+        }
+
+        .enter-btn,
+        .role-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #00ff66;
+            color: #000;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .role-btn {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+        }
+
+        .role-btn.active,
+        .enter-btn:hover {
+            background-color: #00cc55;
+            color: #000;
+        }
+
+        .unit-grid {
+            display: grid;
+            gap: 10px;
+            margin: 12px 0 20px;
+        }
+
+        .unit-card {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 10px;
+        }
+
+        .unit-card.available {
+            background-color: #003311;
+        }
+
+        .unit-title {
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .note {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                width: 100%;
+                padding: 24px 16px;
+            }
+
+            .role-actions {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="app/firebase-config.js"></script>
+    <script src="app/sync.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>DIGITAL FIRE CONTROL SYSTEM</h1>
+
+        <div class="session-row">
+            <div class="input-group">
+                <label for="sessionCodeInput">Session Code</label>
+                <input id="sessionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+            </div>
+            <button class="session-btn" onclick="saveSessionCode()">SET</button>
+        </div>
+        <div class="sync-status" id="syncStatus">Local mode</div>
+
+        <div class="role-actions">
+            <button class="role-btn" id="fdcRoleButton" onclick="selectRole('fdc')">FDC</button>
+            <button class="role-btn" id="firingUnitRoleButton" onclick="selectRole('firingUnit')">DFCS</button>
+        </div>
+
+        <div class="section" id="fdcSection">
+            <div class="input-group">
+                <label for="fdcCallsignInput">FDC Callsign</label>
+                <select id="fdcCallsignInput">
+                    <option value="1">FDC 1</option>
+                    <option value="2">FDC 2</option>
+                    <option value="3">FDC 3</option>
+                    <option value="4">FDC 4</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="weaponSystem">Selected Weapon System</label>
+                <select id="weaponSystem">
+                    <option value="M777A2">M777A2</option>
+                    <option value="M252 Mortar">M252 Mortar</option>
+                    <option value="2B14 Mortar">2B14 Mortar</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="fireUnitSize">Maximum DFCS Units</label>
+                <select id="fireUnitSize">
+                    <option value="">Select maximum</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+
+            <label>Joined DFCS Units</label>
+            <div class="unit-grid" id="availableUnitsList"></div>
+
+            <button class="enter-btn" onclick="enterFdc()">ENTER FDC</button>
+        </div>
+
+        <div class="section" id="firingUnitSection">
+            <div class="input-group">
+                <label for="firingUnitLabel">Unit</label>
+                <select id="firingUnitLabel">
+                    <option value="A">Unit A</option>
+                    <option value="B">Unit B</option>
+                    <option value="C">Unit C</option>
+                    <option value="D">Unit D</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="firingUnitFdcCallsignInput">FDC Callsign</label>
+                <select id="firingUnitFdcCallsignInput">
+                    <option value="1">FDC 1</option>
+                    <option value="2">FDC 2</option>
+                    <option value="3">FDC 3</option>
+                    <option value="4">FDC 4</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="firingUnitLocationInput">DFCS Starting Grid</label>
+                <input id="firingUnitLocationInput" type="text" maxlength="10" placeholder="Location">
+                <div class="note">10 figure grid</div>
+            </div>
+
+            <div class="input-group">
+                <label for="firingUnitAltitudeInput">DFCS Altitude</label>
+                <input id="firingUnitAltitudeInput" type="number" min="0" max="999" placeholder="Elevation">
+                <div class="note">Meters</div>
+            </div>
+
+            <button class="enter-btn" onclick="enterFiringUnit()">ENTER DFCS</button>
+        </div>
+    </div>
+
+    <script>
+        const UNIT_LABELS = ["A", "B", "C", "D"];
+        const DFCS_PRESENCE_TIMEOUT_MS = 25000;
+
+        function generateSessionCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function ensureFdcSessionCode() {
+            if (!window.DFCS_SYNC) return "";
+
+            let sessionCode = window.DFCS_SYNC.getSessionCode();
+            if (!/^\d{6}$/.test(sessionCode)) {
+                sessionCode = window.DFCS_SYNC.setSessionCode(generateSessionCode());
+                const input = document.getElementById("sessionCodeInput");
+                if (input) input.value = sessionCode;
+                updateSyncStatus();
+                window.DFCS_SYNC.start();
+            }
+            return sessionCode;
+        }
+
+        function updateSyncStatus() {
+            const syncStatus = document.getElementById("syncStatus");
+            if (!syncStatus) return;
+
+            const sessionCode = window.DFCS_SYNC ? window.DFCS_SYNC.getSessionCode() : "";
+            const firebaseReady = window.DFCS_SYNC && window.DFCS_SYNC.isConfigured();
+            const mode = firebaseReady
+                ? "Firebase internet sync"
+                : "LOCAL ONLY - Firebase config missing";
+            syncStatus.innerText = sessionCode
+                ? `${mode} - Session ${sessionCode}`
+                : `${mode} - Set a session code`;
+        }
+
+        function saveSessionCode() {
+            const input = document.getElementById("sessionCodeInput");
+            const requestedCode = input ? input.value.replace(/\D/g, "").slice(0, 6) : "";
+            if (!/^\d{6}$/.test(requestedCode)) {
+                alert("Enter a 6 digit session code.");
+                return;
+            }
+            const sessionCode = window.DFCS_SYNC && input
+                ? window.DFCS_SYNC.setSessionCode(requestedCode)
+                : "";
+            input.value = sessionCode;
+            updateSyncStatus();
+            if (window.DFCS_SYNC) {
+                window.DFCS_SYNC.start();
+            }
+        }
+
+        function selectRole(role) {
+            const isFdc = role === "fdc";
+            if (isFdc) {
+                ensureFdcSessionCode();
+            }
+            document.getElementById("fdcSection").classList.toggle("active", isFdc);
+            document.getElementById("firingUnitSection").classList.toggle("active", !isFdc);
+            document.getElementById("fdcRoleButton").classList.toggle("active", isFdc);
+            document.getElementById("firingUnitRoleButton").classList.toggle("active", !isFdc);
+            localStorage.setItem("setupRole", role);
+
+            if (isFdc) {
+                renderAvailableUnits();
+            } else {
+                loadFiringUnitInputs();
+            }
+        }
+
+        function getRegisteredUnit(label) {
+            const fdcCallsign = getSelectedFdcCallsign();
+            const scopedPrefix = `firingUnit${fdcCallsign}${label}`;
+            const presence = readJsonStorage(`${scopedPrefix}Presence`);
+            const presenceActive = isDfcsPresenceActive(presence, fdcCallsign, label);
+            const location = localStorage.getItem(`${scopedPrefix}Location`) || "";
+            const altitude = localStorage.getItem(`${scopedPrefix}Altitude`) || "";
+            return {
+                label,
+                fdcCallsign,
+                location: presenceActive ? location : "",
+                altitude: presenceActive ? altitude : "",
+                hasSavedData: Boolean(location || altitude),
+                presence,
+                presenceActive,
+            };
+        }
+
+        function readJsonStorage(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || "null");
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function isDfcsPresenceActive(presence, fdcCallsign, label) {
+            if (!presence || presence.fdcCallsign !== fdcCallsign || presence.unit !== label) {
+                return false;
+            }
+            const roomStartedMs = Date.parse(localStorage.getItem(`fdc${fdcCallsign}RoomStartedAt`) || "");
+            const joinedMs = Date.parse(presence.joinedAt || "");
+            if (Number.isFinite(roomStartedMs) && (!Number.isFinite(joinedMs) || joinedMs < roomStartedMs)) {
+                return false;
+            }
+            const lastSeenMs = Date.parse(presence.lastSeenAt || "");
+            return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= DFCS_PRESENCE_TIMEOUT_MS;
+        }
+
+        function getPresenceJoinedAt(existingPresence, fdcCallsign, now, forceNewJoin = false) {
+            if (forceNewJoin) return now;
+            const roomStartedMs = Date.parse(localStorage.getItem(`fdc${fdcCallsign}RoomStartedAt`) || "");
+            const joinedMs = Date.parse(existingPresence && existingPresence.joinedAt || "");
+            if (Number.isFinite(roomStartedMs) && (!Number.isFinite(joinedMs) || joinedMs < roomStartedMs)) {
+                return now;
+            }
+            return existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now;
+        }
+
+        function writeDfcsPresence(label, fdcCallsign, forceNewJoin = false) {
+            const existingPresence = readJsonStorage(`firingUnit${fdcCallsign}${label}Presence`);
+            const now = new Date().toISOString();
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}Presence`, JSON.stringify({
+                unit: label,
+                fdcCallsign,
+                callsign: `${label}${fdcCallsign}`,
+                joined: true,
+                joinedAt: getPresenceJoinedAt(existingPresence, fdcCallsign, now, forceNewJoin),
+                lastSeenAt: now,
+            }));
+        }
+
+        function getSelectedFdcCallsign() {
+            const firingUnitSelect = document.getElementById("firingUnitFdcCallsignInput");
+            const fdcInput = document.getElementById("fdcCallsignInput");
+            const firingUnitSection = document.getElementById("firingUnitSection");
+            const isDfcsSetup = firingUnitSection && firingUnitSection.classList.contains("active");
+            if (isDfcsSetup && firingUnitSelect) {
+                return firingUnitSelect.value || localStorage.getItem("assignedFdcCallsign") || "1";
+            }
+            return (fdcInput && fdcInput.value) || localStorage.getItem("fdcCallsign") || "1";
+        }
+
+        function getFdcMaxUnits(fdcCallsign = getSelectedFdcCallsign()) {
+            const fdcSection = document.getElementById("fdcSection");
+            const isFdcSetup = fdcSection && fdcSection.classList.contains("active");
+            const visibleMax = parseInt(document.getElementById("fireUnitSize").value, 10);
+            if (isFdcSetup && visibleMax >= 1 && visibleMax <= 4) return visibleMax;
+            const scopedMax = parseInt(localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`), 10);
+            if (scopedMax >= 1 && scopedMax <= 4) return scopedMax;
+            if (visibleMax >= 1 && visibleMax <= 4) return visibleMax;
+            const legacyMax = parseInt(localStorage.getItem("fireUnitSize"), 10);
+            return legacyMax >= 1 && legacyMax <= 4 ? legacyMax : 4;
+        }
+
+        function renderAvailableUnits() {
+            const units = UNIT_LABELS.map(getRegisteredUnit);
+            const maxUnits = getFdcMaxUnits();
+            const joinedUnits = units.filter(unit => unit.presenceActive && unit.location && unit.altitude);
+            document.getElementById("availableUnitsList").innerHTML = `
+                <div class="note">Joined ${joinedUnits.length}/${maxUnits}</div>
+                ${units.map(unit => {
+                const available = unit.presenceActive && unit.location && unit.altitude;
+                const stale = !unit.presenceActive && unit.hasSavedData;
+                return `
+                    <div class="unit-card ${available ? "available" : ""}">
+                        <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
+                        <div>Status: ${available ? "Joined" : stale ? "Offline" : "Waiting for DFCS"}</div>
+                        <div>Location: ${unit.location || "---"}</div>
+                        <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
+                        ${unit.presenceActive ? `<div>Last seen: now</div>` : ""}
+                    </div>
+                `;
+            }).join("")}
+            `;
+        }
+
+        function enterFdc() {
+            ensureFdcSessionCode();
+            const weaponSystem = document.getElementById("weaponSystem").value || "M777A2";
+            const fireUnitSize = parseInt(document.getElementById("fireUnitSize").value, 10);
+            const fdcCallsign = document.getElementById("fdcCallsignInput").value.trim();
+
+            if (!/^[1-4]$/.test(fdcCallsign)) {
+                alert("Please enter an FDC callsign from 1 to 4.");
+                return;
+            }
+            if (!fireUnitSize || fireUnitSize < 1 || fireUnitSize > 4) {
+                alert("Please select a maximum DFCS unit count between 1 and 4.");
+                return;
+            }
+
+            localStorage.setItem("fdcCallsign", fdcCallsign);
+            localStorage.setItem(`fdc${fdcCallsign}RoomStartedAt`, new Date().toISOString());
+            localStorage.setItem("weaponSystem", weaponSystem);
+            localStorage.setItem(`fdc${fdcCallsign}WeaponSystem`, weaponSystem);
+            localStorage.setItem("fireUnitSize", fireUnitSize.toString());
+            localStorage.setItem(`fdc${fdcCallsign}FireUnitSize`, fireUnitSize.toString());
+            UNIT_LABELS.forEach(label => {
+                localStorage.removeItem(`firingUnit${fdcCallsign}${label}Presence`);
+            });
+            window.location.href = "app/home.html";
+        }
+
+        function loadFiringUnitInputs() {
+            const label = document.getElementById("firingUnitLabel").value || "A";
+            const unit = getRegisteredUnit(label);
+            document.getElementById("firingUnitLocationInput").value = unit.location;
+            document.getElementById("firingUnitAltitudeInput").value = unit.altitude;
+        }
+
+        function enterFiringUnit() {
+            const label = document.getElementById("firingUnitLabel").value || "A";
+            const fdcCallsign = document.getElementById("firingUnitFdcCallsignInput").value || "1";
+            const location = document.getElementById("firingUnitLocationInput").value.trim();
+            const altitude = document.getElementById("firingUnitAltitudeInput").value.trim();
+
+            if (!location) {
+                alert("Please enter the DFCS starting grid.");
+                return;
+            }
+            if (!altitude) {
+                alert("Please enter the DFCS altitude.");
+                return;
+            }
+
+            const maxUnits = getFdcMaxUnits(fdcCallsign);
+            const alreadyJoined = Boolean(
+                isDfcsPresenceActive(readJsonStorage(`firingUnit${fdcCallsign}${label}Presence`), fdcCallsign, label)
+            );
+            const joinedCount = UNIT_LABELS.filter(unitLabel => {
+                if (unitLabel === label) return false;
+                return isDfcsPresenceActive(readJsonStorage(`firingUnit${fdcCallsign}${unitLabel}Presence`), fdcCallsign, unitLabel);
+            }).length;
+            if (!alreadyJoined && joinedCount >= maxUnits) {
+                alert(`FDC ${fdcCallsign} already has the maximum ${maxUnits} DFCS unit${maxUnits === 1 ? "" : "s"} joined.`);
+                return;
+            }
+
+            localStorage.setItem("assignedFiringUnit", label);
+            localStorage.setItem("assignedFdcCallsign", fdcCallsign);
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}Location`, location);
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}OperationalStatus`, "stationary");
+            writeDfcsPresence(label, fdcCallsign, true);
+
+            window.location.href = "app/unit-select.html";
+        }
+
+        function initIndexPage() {
+            const sessionCodeInput = document.getElementById("sessionCodeInput");
+            if (sessionCodeInput && window.DFCS_SYNC) {
+                sessionCodeInput.value = window.DFCS_SYNC.getSessionCode();
+            }
+            updateSyncStatus();
+            const initialFdcCallsign = localStorage.getItem("fdcCallsign") || "1";
+            document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${initialFdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+            document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${initialFdcCallsign}FireUnitSize`) || localStorage.getItem("fireUnitSize") || "";
+            document.getElementById("fireUnitSize").addEventListener("change", renderAvailableUnits);
+            document.getElementById("fdcCallsignInput").value = initialFdcCallsign;
+            document.getElementById("fdcCallsignInput").addEventListener("change", () => {
+                const fdcCallsign = getSelectedFdcCallsign();
+                document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+                document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`) || "";
+                renderAvailableUnits();
+            });
+            document.getElementById("firingUnitLabel").value = localStorage.getItem("assignedFiringUnit") || "A";
+            document.getElementById("firingUnitFdcCallsignInput").value = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            document.getElementById("firingUnitLabel").addEventListener("change", loadFiringUnitInputs);
+            document.getElementById("firingUnitFdcCallsignInput").addEventListener("change", loadFiringUnitInputs);
+
+            selectRole(localStorage.getItem("setupRole") || "fdc");
+            window.addEventListener("dfcs-sync-update", () => {
+                if (document.getElementById("fdcSection").classList.contains("active")) {
+                    renderAvailableUnits();
+                }
+            });
+            setInterval(() => {
+                if (document.getElementById("fdcSection").classList.contains("active")) {
+                    renderAvailableUnits();
+                }
+            }, 5000);
+        }
+
+        initIndexPage();
+    </script>
+</body>
+</html>
