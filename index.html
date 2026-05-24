@@ -329,7 +329,7 @@
             <div class="input-group">
                 <label for="weaponSystem">Selected Weapon System</label>
                 <select id="weaponSystem">
-                    <option value="M777A2">M777A2</option>
+                    <option value="M777">M777</option>
                     <option value="M252 Mortar">M252 Mortar</option>
                     <option value="2B14 Mortar">2B14 Mortar</option>
                 </select>
@@ -616,7 +616,7 @@
 
         function enterFdc() {
             ensureFdcSessionCode();
-            const weaponSystem = document.getElementById("weaponSystem").value || "M777A2";
+            const weaponSystem = document.getElementById("weaponSystem").value || "M777";
             const fireUnitSize = parseInt(document.getElementById("fireUnitSize").value, 10);
             const fdcCallsign = document.getElementById("fdcCallsignInput").value.trim();
 
@@ -694,13 +694,13 @@
             }
             updateSyncStatus();
             const initialFdcCallsign = localStorage.getItem("fdcCallsign") || "1";
-            document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${initialFdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+            document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${initialFdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777";
             document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${initialFdcCallsign}FireUnitSize`) || localStorage.getItem("fireUnitSize") || "";
             document.getElementById("fireUnitSize").addEventListener("change", renderAvailableUnits);
             document.getElementById("fdcCallsignInput").value = initialFdcCallsign;
             document.getElementById("fdcCallsignInput").addEventListener("change", () => {
                 const fdcCallsign = getSelectedFdcCallsign();
-                document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+                document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777";
                 document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`) || "";
                 renderAvailableUnits();
             });
