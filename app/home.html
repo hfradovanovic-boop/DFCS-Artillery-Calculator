@@ -403,7 +403,8 @@
         }
 
         .recorded-targets-panel,
-        .fireplan-panel {
+        .fireplan-panel,
+        .geometries-panel {
             padding: 20px;
             background-color: #111;
             border: 2px solid #00ff66;
@@ -412,12 +413,126 @@
         }
 
         .recorded-targets-panel h3,
-        .fireplan-panel h3 {
+        .fireplan-panel h3,
+        .geometries-panel h3 {
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 18px;
             letter-spacing: 1px;
             color: #00ff66;
+        }
+
+        .geometries-layout {
+            display: grid;
+            grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .geometry-form,
+        .geometry-list {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 14px;
+        }
+
+        .geometry-form textarea {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+            box-sizing: border-box;
+            padding: 10px;
+            background-color: #111;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-family: Arial, sans-serif;
+        }
+
+        .geometry-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .geometry-actions button,
+        .geometry-edit-btn,
+        .geometry-delete-btn {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .geometry-actions button:hover,
+        .geometry-edit-btn:hover,
+        .geometry-delete-btn:hover {
+            background-color: #003311;
+        }
+
+        .geometry-point-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .geometry-point-grid .input-group {
+            margin-bottom: 0;
+        }
+
+        .geometry-row-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .geometry-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,102,0.25);
+            padding: 10px 0;
+        }
+
+        .geometry-item:first-child {
+            padding-top: 0;
+        }
+
+        .geometry-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .geometry-name {
+            color: #ffffff;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .geometry-meta {
+            color: #9dffbf;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .geometry-empty {
+            border: 1px dashed #00ff66;
+            padding: 18px;
+            color: #9dffbf;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .geometries-layout {
+                grid-template-columns: 1fr;
+            }
         }
 
         .fireplan-empty {
@@ -1100,6 +1215,12 @@
             margin-bottom: 0;
         }
 
+        .target-list-fire-control-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .target-list-form-actions {
             grid-column: 1 / -1;
             display: flex;
@@ -1290,6 +1411,12 @@
         .right-section {
             width: 100%;
             min-width: 0;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .input-section {
@@ -1660,7 +1787,7 @@
             border: 2px solid #00ff66;
             background-color: #111;
             padding: 14px;
-            margin-bottom: 12px;
+            margin-bottom: 0;
             box-shadow: 0 0 15px rgba(0,255,102,0.1);
         }
 
@@ -1907,11 +2034,11 @@
         }
 
         .map-box {
-            margin-bottom: 20px;
             border: 2px solid #00ff66;
             background-color: #111;
-            border-radius: 8px;
-            padding: 16px;
+            padding: 20px;
+            margin: 0;
+            box-shadow: 0 0 15px rgba(0,255,102,0.1);
         }
 
         .map-header {
@@ -1927,8 +2054,36 @@
             height: auto;
             background-color: #000;
             border: 1px solid #00ff66;
-            border-radius: 6px;
             display: block;
+        }
+
+        .map-context-menu {
+            position: fixed;
+            display: none;
+            min-width: 170px;
+            border: 1px solid #00ff66;
+            background-color: #000;
+            box-shadow: 0 0 14px rgba(0,255,102,0.25);
+            z-index: 250;
+        }
+
+        .map-context-menu.open {
+            display: block;
+        }
+
+        .map-context-menu button {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #000;
+            color: #00ff66;
+            border: 0;
+            text-align: left;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .map-context-menu button:hover {
+            background-color: #003311;
         }
 
         .results-table {
@@ -2204,7 +2359,6 @@
             }
 
             .map-box {
-                margin-bottom: 15px;
                 padding: 12px;
             }
 
@@ -2452,6 +2606,10 @@
             FIREPLAN
         </button>
 
+        <button class="tab-button" id="geometriesTab" onclick="showGeometries()">
+            GEOMETRIES
+        </button>
+
         <button class="tab-button settings-tab-button" id="settingsTab" onclick="showSettings()">
             SETTINGS
         </button>
@@ -2593,11 +2751,12 @@
                             <tr>
                                 <th>Unit</th>
                                 <th>Status</th>
+                                <th>Mission Number</th>
                             </tr>
                         </thead>
                         <tbody id="missionStatusBody">
                             <tr>
-                                <td colspan="2">No mission calculated.</td>
+                                <td colspan="3">No mission calculated.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2617,8 +2776,11 @@
                     </div>
                 </div>
                 <div class="map-box">
-                    <div class="map-header">Plan View</div>
+                    <div class="map-header">Map View</div>
                     <canvas id="planViewCanvas" width="640" height="420"></canvas>
+                    <div class="map-context-menu" id="planViewContextMenu">
+                        <button type="button" onclick="centerPlanViewContextTarget()">Center on screen</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2686,6 +2848,45 @@
                         <tr><td></td><td></td><td class="schedule-cell"></td><td></td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="geometries-panel" id="geometriesPanel" style="display: none;">
+            <h3>Geometries</h3>
+            <div class="geometries-layout">
+                <div class="geometry-form">
+                    <div class="input-group">
+                        <label for="geometryNameInput">Overlay Name</label>
+                        <input id="geometryNameInput" type="text" maxlength="32" placeholder="EA Alpha">
+                    </div>
+                    <div class="input-group">
+                        <label for="geometryEffectTypeSelect">Type</label>
+                        <select id="geometryEffectTypeSelect">
+                            <option value="No Fire Area">No Fire Area</option>
+                            <option value="Report Line">Report Line</option>
+                            <option value="Restricted Fire Area">Restricted Fire Area</option>
+                            <option value="Target Area">Target Area</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="geometryShapeSelect">Geometry Shape</label>
+                        <select id="geometryShapeSelect" onchange="renderGeometryShapeInputs()">
+                            <option value="line">Line</option>
+                            <option value="irregular">Irregular</option>
+                            <option value="circle">Circle</option>
+                            <option value="rectangular">Rectangular</option>
+                        </select>
+                    </div>
+                    <input id="geometryEditingIdInput" type="hidden">
+                    <div id="geometryShapeInputs"></div>
+                    <div class="geometry-actions">
+                        <button type="button" onclick="saveGeometryOverlay()">SAVE OVERLAY</button>
+                        <button type="button" onclick="clearGeometryForm()">CLEAR</button>
+                    </div>
+                </div>
+                <div class="geometry-list">
+                    <div id="geometryOverlayList" class="geometry-empty">No geometry overlays saved</div>
+                </div>
             </div>
         </div>
 
@@ -2805,7 +3006,7 @@
         const TWO_B14_BALLISTIC_DATA_FILE = "ballistics/2B14-ballistic-data.json";
         const M252_BALLISTIC_DATA_FILE = "ballistics/M252-ballistic-data.json";
         const M777_BALLISTIC_DATA_FILES = {
-            "M777A2": M777_BALLISTIC_DATA_FILE,
+            "M777": M777_BALLISTIC_DATA_FILE,
         };
         const MORTAR_BALLISTIC_DATA_FILES = {
             "2B14 Mortar": TWO_B14_BALLISTIC_DATA_FILE,
@@ -2839,6 +3040,26 @@
         let zuluClockInterval = null;
         let activeFiringSolutions = [];
         let missionFormState = {};
+        let geometryOverlays = readJsonStorage("geometryOverlays") || [];
+        let planViewState = {
+            fireUnits: [],
+            availableUnits: [],
+            aimPoints: [],
+            targetPoint: null,
+            targetMarkers: [],
+            hoverTargetKey: "",
+            cursorPoint: null,
+            worldToCanvas: null,
+            canvasToWorld: null,
+            viewLocked: false,
+            viewCenter: null,
+            viewScale: null,
+            dragging: false,
+            dragStartCanvas: null,
+            dragStartCenter: null,
+            contextTarget: null,
+            rangeRingUnitKeys: [],
+        };
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
         let lastProcessedMissionDenyId = localStorage.getItem("lastProcessedMissionDenyId") || "";
         let lastProcessedPingId = localStorage.getItem("lastProcessedPingId") || "";
@@ -3325,8 +3546,9 @@
                 return;
             }
 
-            const recipients = acceptedPayload.recipients || [];
-            const filteredSolutions = solutions.filter(solution => recipients.includes(solution.label));
+            const acceptedRecipients = acceptedPayload.recipients || [];
+            const filteredSolutions = solutions.filter(solution => acceptedRecipients.includes(solution.label) && !solution.crestBlocked);
+            const recipients = filteredSolutions.map(solution => solution.label);
             localStorage.setItem("latestFiringSolutions", JSON.stringify({
                 ...buildFiringPayload(filteredSolutions),
                 acceptedAt: acceptedPayload.acceptedAt,
@@ -3352,6 +3574,7 @@
                 return;
             }
             updateMissionStatusMonitor();
+            refreshPlanViewMarkers();
 
             if (!activeFiringSolutions.length || !getCurrentTargetNumber()) {
                 return;
@@ -3395,6 +3618,7 @@
 
             clearMissionUnitReports(report.unit, payload.targetNumber);
             setMissionUnitStatus(report.unit, report.status || getUnitOperationalStatus(report.unit), payload.targetNumber);
+            clearUnitCurrentTargetNumber(report.unit);
             updateConnectivityStatus(`Mission ${report.targetNumber} denied by ${report.unitAssignedName || `${report.unit}${getActiveFdcCallsign()}`}.`, "alert");
             setNotificationSound("fdc-deny", true);
             localStorage.setItem("latestFiringSolutions", JSON.stringify({
@@ -3591,6 +3815,8 @@
                 }));
             }
             updateCheckFiringButton();
+            updateFireButtonState();
+            updateMissionStatusMonitor();
         }
 
         function getNotificationSoundSrc() {
@@ -3845,7 +4071,7 @@
             const fdcCallsign = getActiveFdcCallsign();
             return localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) ||
                 localStorage.getItem("weaponSystem") ||
-                "M777A2";
+                "M777";
         }
 
         function getActiveFdcMaxUnits() {
@@ -3867,9 +4093,26 @@
             return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}OperationalStatus`) || "out of action";
         }
 
+        function getUnitCrestMinimumElevation(unitLabel) {
+            const value = parseFloat(localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}CrestMinimumElevation`) || "");
+            return Number.isFinite(value) ? value : null;
+        }
+
+        function getUnitCurrentTargetNumber(unitLabel) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}CurrentTargetNumber`) || "";
+        }
+
+        function clearUnitCurrentTargetNumber(unitLabel) {
+            localStorage.removeItem(`${getUnitStoragePrefix(unitLabel)}CurrentTargetNumber`);
+        }
+
         function isUnitMissionCapable(unitLabel) {
             const status = getUnitOperationalStatus(unitLabel);
             return status === "moving" || status === "stationary";
+        }
+
+        function isUnitSendableForMission(unitLabel) {
+            return !isCheckFiringActive() && isUnitMissionCapable(unitLabel);
         }
 
         function updateFdcPingButtons() {
@@ -3979,6 +4222,7 @@
                 <tr>
                     <td>Unit ${label}${getActiveFdcCallsign()}</td>
                     <td><span class="status-pill">${targetNumber ? getDerivedUnitStatus(label, targetNumber) : getUnitOperationalStatus(label)}</span></td>
+                    <td>${getUnitCurrentTargetNumber(label) || "---"}</td>
                 </tr>
             `).join("");
             updateResendNotice();
@@ -4060,8 +4304,9 @@
                 return [];
             }
             return payload.solutions
+                .filter(solution => !solution.crestBlocked)
                 .map(solution => solution.label)
-                .filter(label => label && isUnitMissionCapable(label));
+                .filter(label => label && isUnitSendableForMission(label));
         }
 
         function getAvailableResendLabels() {
@@ -4076,11 +4321,17 @@
                 currentRecipients.add(activePayload.deniedUnit);
             }
             return pendingPayload.solutions
+                .filter(solution => !solution.crestBlocked)
                 .map(solution => solution.label)
-                .filter(label => label && isUnitMissionCapable(label) && !currentRecipients.has(label));
+                .filter(label => label && isUnitSendableForMission(label) && !currentRecipients.has(label));
         }
 
         function acceptFiringData(selectedUnits = null) {
+            if (isCheckFiringActive()) {
+                alert("CHECK FIRING active. Cancel check firing before sending missions.");
+                updateFireButtonState();
+                return;
+            }
             const pendingPayload = getPendingFiringPayload();
             if (!pendingPayload || !Array.isArray(pendingPayload.solutions) || !pendingPayload.solutions.length) {
                 updateFireButtonState();
@@ -4090,10 +4341,12 @@
             const requestedRecipients = Array.isArray(selectedUnits)
                 ? selectedUnits
                 : pendingPayload.solutions.map(solution => solution.label);
-            const recipients = requestedRecipients.filter(label => isUnitMissionCapable(label));
-            const filteredSolutions = pendingPayload.solutions.filter(solution => recipients.includes(solution.label));
+            const recipients = requestedRecipients.filter(label => isUnitSendableForMission(label));
+            const filteredSolutions = pendingPayload.solutions.filter(solution => recipients.includes(solution.label) && !solution.crestBlocked);
             if (!filteredSolutions.length) {
-                alert("Select at least one moving or stationary unit to send firing data.");
+                alert(isCheckFiringActive()
+                    ? "CHECK FIRING active. Cancel check firing before sending missions."
+                    : "Select at least one moving or stationary unit with a valid firing solution.");
                 return;
             }
 
@@ -4112,6 +4365,11 @@
         }
 
         function resendMissionToUnits(selectedUnits = []) {
+            if (isCheckFiringActive()) {
+                alert("CHECK FIRING active. Cancel check firing before resending missions.");
+                updateResendNotice();
+                return;
+            }
             const pendingPayload = getPendingFiringPayload();
             const activePayload = getActiveMissionPayload();
             if (!pendingPayload || !activePayload || !activePayload.targetNumber || !selectedUnits.length) {
@@ -4120,10 +4378,12 @@
             }
 
             const currentRecipients = Array.isArray(activePayload.recipients) ? activePayload.recipients : [];
-            const recipients = Array.from(new Set([...currentRecipients, ...selectedUnits.filter(label => isUnitMissionCapable(label))]));
-            const solutions = pendingPayload.solutions.filter(solution => recipients.includes(solution.label));
+            const recipients = Array.from(new Set([...currentRecipients, ...selectedUnits.filter(label => isUnitSendableForMission(label))]));
+            const solutions = pendingPayload.solutions.filter(solution => recipients.includes(solution.label) && !solution.crestBlocked);
             if (!solutions.length) {
-                alert("Select at least one moving or stationary unit to resend the mission.");
+                alert(isCheckFiringActive()
+                    ? "CHECK FIRING active. Cancel check firing before resending missions."
+                    : "Select at least one moving or stationary unit with a valid firing solution.");
                 return;
             }
 
@@ -4270,11 +4530,16 @@
 
             const status = getFireWorkflowStatus();
             const pendingPayload = getPendingFiringPayload();
-            const hasPendingPayload = Boolean(pendingPayload && pendingPayload.targetNumber === status.targetNumber && Array.isArray(pendingPayload.solutions) && pendingPayload.solutions.length);
+            const hasSendablePendingPayload = Boolean(pendingPayload &&
+                pendingPayload.targetNumber === status.targetNumber &&
+                Array.isArray(pendingPayload.solutions) &&
+                pendingPayload.solutions.some(solution => !solution.crestBlocked && isUnitSendableForMission(solution.label)));
             let message = "Calculate mission first";
             let canFire = false;
 
-            if (status.hasShot) {
+            if (isCheckFiringActive()) {
+                message = "CHECK FIRING active";
+            } else if (status.hasShot) {
                 message = `Shot received from ${status.shotUnits.join(", ")}`;
             } else if (status.hasFire) {
                 message = status.readyUnfiredUnits.length
@@ -4298,7 +4563,7 @@
                 } else {
                     message = "Waiting for Ready";
                 }
-            } else if (hasPendingPayload) {
+            } else if (hasSendablePendingPayload) {
                 message = "Accept firing data to send";
             }
 
@@ -4309,10 +4574,10 @@
                 calculateButton.disabled = shouldLockCalculateButton();
             }
             if (acceptButton) {
-                acceptButton.disabled = !hasPendingPayload;
+                acceptButton.disabled = !hasSendablePendingPayload;
             }
             if (acceptArrowButton) {
-                acceptArrowButton.disabled = !hasPendingPayload;
+                acceptArrowButton.disabled = !hasSendablePendingPayload;
             }
             if (fireStatus) {
                 fireStatus.innerText = message;
@@ -4357,7 +4622,7 @@
         }
 
         function getM777WeaponId(weaponSystem = getActiveWeaponSystem()) {
-            return weaponSystem === "M777A2" ? "M777A2" : "";
+            return weaponSystem === "M777" ? "M777" : "";
         }
 
         function getMortarBallisticDataFile(weaponSystem = getActiveWeaponSystem()) {
@@ -4416,6 +4681,11 @@
         function getFfeChargeText(id) {
             const value = parseInt(getValue(id, ""), 10);
             return Number.isNaN(value) ? "" : `Ch ${value}`;
+        }
+
+        function normalizeChargeSelectValue(value) {
+            const match = String(value || "").match(/\d+/);
+            return match ? match[0] : "";
         }
 
         function isHighAngleSelected() {
@@ -4481,6 +4751,48 @@ ${getAngleModeMarkup()}
             `;
         }
 
+        function getTargetListEngagementControlsMarkup() {
+            return `
+                    <div class="engagement-controls">
+                        <div class="ffe-stack">
+                            <div class="ffe-row">
+                                <label for="targetListFfe1Select">FFE 1</label>
+                                <select id="targetListFfe1Select">
+${getAmmoOptionsMarkup()}
+                                </select>
+                                <input id="targetListFfeRoundsInput" type="number" placeholder="0">
+                                <label for="targetListFfe1ChargeSelect">Ch</label>
+                                <select id="targetListFfe1ChargeSelect" aria-label="Target list FFE 1 charge">
+${getChargeOptionsMarkup()}
+                                </select>
+                            </div>
+                            <div class="ffe-row">
+                                <label for="targetListFfe2Select">FFE 2</label>
+                                <select id="targetListFfe2Select">
+${getAmmoOptionsMarkup()}
+                                </select>
+                                <input id="targetListFfe2RoundsInput" type="number" placeholder="0">
+                                <label for="targetListFfe2ChargeSelect">Ch</label>
+                                <select id="targetListFfe2ChargeSelect" aria-label="Target list FFE 2 charge">
+${getChargeOptionsMarkup()}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="engagement-actions">
+                            <div class="engagement-button-row timing-mode-row">
+                                <button type="button" class="engagement-button active" data-target-list-engagement-mode="When Ready" onclick="setTargetListEngagementTimingMode('When Ready')">When Ready</button>
+                                <button type="button" class="engagement-button" data-target-list-engagement-mode="At my command" onclick="setTargetListEngagementTimingMode('At my command')">At my command</button>
+                            </div>
+                            <div class="engagement-button-row time-on-target-row">
+                                <button type="button" class="engagement-button time-on-target-button" data-target-list-engagement-mode="Time on target" onclick="setTargetListEngagementTimingMode('Time on target')">Time on target</button>
+                                <input class="time-on-target-input" id="targetListTimeOnTargetInput" type="text" inputmode="numeric" maxlength="6" placeholder="HHMMSS">
+                            </div>
+                        </div>
+                    </div>
+                    <input class="sr-only-input" type="hidden" id="targetListEngagementTimingInput" value="When Ready">
+            `;
+        }
+
         function setEngagementTimingMode(mode) {
             const selectedMode = mode === "At my command" || mode === "Time on target"
                 ? mode
@@ -4504,6 +4816,38 @@ ${getAngleModeMarkup()}
             });
 
             updateLiveFireCountdowns();
+        }
+
+        function setTargetListEngagementTimingMode(mode) {
+            const selectedMode = mode === "At my command" || mode === "Time on target"
+                ? mode
+                : "When Ready";
+            const timingInput = document.getElementById("targetListEngagementTimingInput");
+            const timeOnTargetInput = document.getElementById("targetListTimeOnTargetInput");
+            if (timingInput) {
+                timingInput.value = selectedMode;
+            }
+            if (timeOnTargetInput) {
+                timeOnTargetInput.classList.toggle("visible", selectedMode === "Time on target");
+            }
+            document.querySelectorAll(".engagement-button[data-target-list-engagement-mode]").forEach(button => {
+                button.classList.toggle("active", button.dataset.targetListEngagementMode === selectedMode);
+            });
+        }
+
+        function getTargetListFireControlMode() {
+            return getValue("targetListMethodOfFireControlInput", "Fire for Effect") || "Fire for Effect";
+        }
+
+        function setTargetListFireControlMode(mode) {
+            const selectedMode = mode === "Adjust Fire" ? "Adjust Fire" : "Fire for Effect";
+            const input = document.getElementById("targetListMethodOfFireControlInput");
+            if (input) {
+                input.value = selectedMode;
+            }
+            document.querySelectorAll(".target-list-fire-control-button").forEach(button => {
+                button.classList.toggle("active", button.dataset.targetListFireControlMode === selectedMode);
+            });
         }
 
         function setHighAngleMode(enabled) {
@@ -4605,6 +4949,7 @@ ${getAngleModeMarkup()}
 
         function saveRecordedTargets() {
             localStorage.setItem("recordedTargets", JSON.stringify(recordedTargets));
+            refreshPlanViewMarkers();
         }
 
         function escapeHtml(value) {
@@ -4618,9 +4963,202 @@ ${getAngleModeMarkup()}
             }[char]));
         }
 
+        function getGeometryShape(overlay) {
+            const shape = overlay && (overlay.shape || overlay.type);
+            if (shape === "polygon") return "irregular";
+            if (shape === "points") return "irregular";
+            return ["line", "irregular", "circle", "rectangular"].includes(shape) ? shape : "irregular";
+        }
+
+        function normalizeGeometryOverlays() {
+            geometryOverlays = Array.isArray(geometryOverlays) ? geometryOverlays.map(overlay => {
+                if (!overlay) return null;
+                return {
+                    ...overlay,
+                    effectType: overlay.effectType || "Target Area",
+                    shape: getGeometryShape(overlay),
+                    points: Array.isArray(overlay.points) ? overlay.points : [],
+                    radius: Number.isFinite(Number(overlay.radius)) ? Number(overlay.radius) : 0,
+                };
+            }).filter(overlay =>
+                overlay &&
+                Array.isArray(overlay.points) &&
+                overlay.points.length > 0
+            ) : [];
+        }
+
+        function saveGeometryOverlays() {
+            normalizeGeometryOverlays();
+            localStorage.setItem("geometryOverlays", JSON.stringify(geometryOverlays));
+            updateGeometryOverlayList();
+            refreshPlanViewMarkers();
+        }
+
+        function getGeometryRequiredPointCount(shape) {
+            if (shape === "line") return 2;
+            if (shape === "circle") return 1;
+            if (shape === "rectangular") return 4;
+            return 4;
+        }
+
+        function getGeometryInputCount(shape, existingPoints = []) {
+            if (shape !== "irregular") return getGeometryRequiredPointCount(shape);
+            return Math.max(4, existingPoints.length + (existingPoints.every(Boolean) ? 1 : 0));
+        }
+
+        function renderGeometryShapeInputs(points = [], radius = "") {
+            const shapeSelect = document.getElementById("geometryShapeSelect");
+            const container = document.getElementById("geometryShapeInputs");
+            if (!container) return;
+            const shape = (shapeSelect && shapeSelect.value) || "line";
+            const inputCount = getGeometryInputCount(shape, points);
+            const pointInputs = Array.from({ length: inputCount }, (_, index) => `
+                <div class="input-group">
+                    <label for="geometryPoint${index + 1}">Point ${index + 1}</label>
+                    <input id="geometryPoint${index + 1}" class="geometry-point-input" type="text" maxlength="10" placeholder="10 figure grid" value="${escapeHtml(points[index] || "")}" oninput="handleGeometryPointInput()" onblur="handleGeometryPointInput()">
+                </div>
+            `).join("");
+
+            container.innerHTML = `
+                <div class="geometry-point-grid">${pointInputs}</div>
+                ${shape === "circle" ? `
+                    <div class="input-group" style="margin-top: 12px;">
+                        <label for="geometryRadiusInput">Radius (m)</label>
+                        <input id="geometryRadiusInput" type="number" min="1" step="1" placeholder="Meters" value="${escapeHtml(radius)}">
+                    </div>
+                ` : ""}
+            `;
+        }
+
+        function getGeometryPointInputValues() {
+            return Array.from(document.querySelectorAll(".geometry-point-input"))
+                .map(input => input.value.trim())
+                .filter(Boolean);
+        }
+
+        function handleGeometryPointInput() {
+            const shapeSelect = document.getElementById("geometryShapeSelect");
+            const shape = (shapeSelect && shapeSelect.value) || "line";
+            if (shape !== "irregular") return;
+            const inputs = Array.from(document.querySelectorAll(".geometry-point-input"));
+            if (!inputs.length) return;
+            const lastInput = inputs[inputs.length - 1];
+            const normalizedLastValue = lastInput.value.replace(/\D/g, "");
+            if (normalizedLastValue.length >= 10) {
+                renderGeometryShapeInputs(getGeometryPointInputValues());
+            }
+        }
+
+        function parseGeometryPointInputs() {
+            return getGeometryPointInputValues()
+                .map(grid => ({ grid, point: parseGridPoint(grid) }))
+                .filter(item => item.point);
+        }
+
+        function clearGeometryForm() {
+            const nameInput = document.getElementById("geometryNameInput");
+            const effectTypeSelect = document.getElementById("geometryEffectTypeSelect");
+            const shapeSelect = document.getElementById("geometryShapeSelect");
+            const editingInput = document.getElementById("geometryEditingIdInput");
+            if (nameInput) nameInput.value = "";
+            if (effectTypeSelect) effectTypeSelect.value = "No Fire Area";
+            if (shapeSelect) shapeSelect.value = "line";
+            if (editingInput) editingInput.value = "";
+            renderGeometryShapeInputs();
+        }
+
+        function saveGeometryOverlay() {
+            const nameInput = document.getElementById("geometryNameInput");
+            const effectTypeSelect = document.getElementById("geometryEffectTypeSelect");
+            const shapeSelect = document.getElementById("geometryShapeSelect");
+            const editingInput = document.getElementById("geometryEditingIdInput");
+            const name = (nameInput && nameInput.value.trim()) || `Geometry ${geometryOverlays.length + 1}`;
+            const effectType = (effectTypeSelect && effectTypeSelect.value) || "No Fire Area";
+            const shape = (shapeSelect && shapeSelect.value) || "line";
+            const parsedPoints = parseGeometryPointInputs();
+            const minimumPoints = getGeometryRequiredPointCount(shape);
+            const radiusInput = document.getElementById("geometryRadiusInput");
+            const radius = parseFloat(radiusInput && radiusInput.value);
+
+            if (parsedPoints.length < minimumPoints) {
+                alert(`Enter at least ${minimumPoints} valid grid${minimumPoints === 1 ? "" : "s"}.`);
+                return;
+            }
+            if (shape === "circle" && (!Number.isFinite(radius) || radius <= 0)) {
+                alert("Enter a valid circle radius.");
+                return;
+            }
+
+            const overlay = {
+                id: editingInput && editingInput.value ? editingInput.value : `geometry-${Date.now()}`,
+                name,
+                effectType,
+                shape,
+                points: parsedPoints.map(item => item.grid),
+                radius: shape === "circle" ? radius : 0,
+                createdAt: new Date().toISOString(),
+            };
+            const existingIndex = geometryOverlays.findIndex(item => item.id === overlay.id);
+            if (existingIndex >= 0) {
+                overlay.createdAt = geometryOverlays[existingIndex].createdAt || overlay.createdAt;
+                overlay.updatedAt = new Date().toISOString();
+                geometryOverlays[existingIndex] = overlay;
+            } else {
+                geometryOverlays.push(overlay);
+            }
+            saveGeometryOverlays();
+            clearGeometryForm();
+        }
+
+        function editGeometryOverlay(id) {
+            normalizeGeometryOverlays();
+            const overlay = geometryOverlays.find(item => item.id === id);
+            if (!overlay) return;
+            const nameInput = document.getElementById("geometryNameInput");
+            const effectTypeSelect = document.getElementById("geometryEffectTypeSelect");
+            const shapeSelect = document.getElementById("geometryShapeSelect");
+            const editingInput = document.getElementById("geometryEditingIdInput");
+            if (nameInput) nameInput.value = overlay.name || "";
+            if (effectTypeSelect) effectTypeSelect.value = overlay.effectType || "Target Area";
+            if (shapeSelect) shapeSelect.value = overlay.shape || "line";
+            if (editingInput) editingInput.value = overlay.id;
+            renderGeometryShapeInputs(overlay.points || [], overlay.radius || "");
+        }
+
+        function deleteGeometryOverlay(id) {
+            geometryOverlays = geometryOverlays.filter(overlay => overlay.id !== id);
+            saveGeometryOverlays();
+        }
+
+        function updateGeometryOverlayList() {
+            const list = document.getElementById("geometryOverlayList");
+            if (!list) return;
+            normalizeGeometryOverlays();
+            if (!geometryOverlays.length) {
+                list.className = "geometry-empty";
+                list.innerHTML = "No geometry overlays saved";
+                return;
+            }
+
+            list.className = "";
+            list.innerHTML = geometryOverlays.map(overlay => `
+                <div class="geometry-item">
+                    <div>
+                        <div class="geometry-name">${escapeHtml(overlay.name)}</div>
+                        <div class="geometry-meta">${escapeHtml(overlay.effectType)} · ${escapeHtml(overlay.shape)} · ${overlay.points.length} point${overlay.points.length === 1 ? "" : "s"}${overlay.shape === "circle" ? ` · ${escapeHtml(overlay.radius)} m` : ""}</div>
+                    </div>
+                    <div class="geometry-row-actions">
+                        <button type="button" class="geometry-edit-btn" onclick="editGeometryOverlay('${escapeHtml(overlay.id)}')">EDIT</button>
+                        <button type="button" class="geometry-delete-btn" onclick="deleteGeometryOverlay('${escapeHtml(overlay.id)}')">DELETE</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
         function saveTargetLists() {
             localStorage.setItem("targetLists", JSON.stringify(targetLists));
             localStorage.setItem("activeTargetListId", activeTargetListId || "");
+            refreshPlanViewMarkers();
         }
 
         function getTargetListTargetByNumber(targetNumber) {
@@ -4691,9 +5229,17 @@ ${getAngleModeMarkup()}
             setValue("referenceLocationInput", target.location || "");
             setValue("targetAltitudeInput", target.altitude || "");
             setValue("referenceAltitudeInput", target.altitude || "");
+            setValue("directionInput", target.direction || "");
             setValue("targetDescriptionInput", target.description || "");
-            setAmmunitionSelection(target.ammunition);
+            setValue("ffe1Select", target.ffe1 || target.ammunition || "");
+            setValue("ffeRoundsInput", target.ffe1Rounds || target.quantity || "");
+            setValue("ffe1ChargeSelect", normalizeChargeSelectValue(target.ffe1Charge));
+            setValue("ffe2Select", target.ffe2 || "");
+            setValue("ffe2RoundsInput", target.ffe2Rounds || "");
+            setValue("ffe2ChargeSelect", normalizeChargeSelectValue(target.ffe2Charge));
+            setValue("timeOnTargetInput", target.timeOnTarget || "");
             setEngagementTimingMode(normalizeMethodOfControl(target.methodOfControl));
+            setFireControlMode(target.methodOfFireControl || "Fire for Effect");
             return true;
         }
 
@@ -4756,20 +5302,32 @@ ${getAngleModeMarkup()}
                     setValue("targetListDescriptionInput", target.targetDescription);
                 }
                 const inputs = target.inputs || {};
-                if (inputs.ffe1Select) {
-                    setValue("targetListAmmunitionInput", inputs.ffe1Select);
-                }
-                if (inputs.engagementTimingInput) {
-                    setValue("targetListMethodControlInput", normalizeMethodOfControl(inputs.engagementTimingInput));
-                }
+                setValue("targetListDirectionInput", inputs.directionInput || "");
+                setValue("targetListFfe1Select", inputs.ffe1Select || "");
+                setValue("targetListFfeRoundsInput", inputs.ffeRoundsInput || "");
+                setValue("targetListFfe1ChargeSelect", normalizeChargeSelectValue(inputs.ffe1ChargeSelect || inputs.chargeOverrideSelect));
+                setValue("targetListFfe2Select", inputs.ffe2Select || "");
+                setValue("targetListFfe2RoundsInput", inputs.ffe2RoundsInput || "");
+                setValue("targetListFfe2ChargeSelect", normalizeChargeSelectValue(inputs.ffe2ChargeSelect));
+                setValue("targetListTimeOnTargetInput", inputs.timeOnTargetInput || "");
+                setTargetListEngagementTimingMode(normalizeMethodOfControl(inputs.engagementTimingInput));
+                setTargetListFireControlMode(inputs.methodOfFireControlInput || "Fire for Effect");
                 return true;
             }
 
             setValue("targetListLocationInput", target.location || "");
             setValue("targetListAltitudeInput", target.altitude || "");
+            setValue("targetListDirectionInput", target.direction || "");
             setValue("targetListDescriptionInput", target.description || "");
-            setValue("targetListAmmunitionInput", target.ammunition || "");
-            setValue("targetListMethodControlInput", normalizeMethodOfControl(target.methodOfControl));
+            setValue("targetListFfe1Select", target.ffe1 || target.ammunition || "");
+            setValue("targetListFfeRoundsInput", target.ffe1Rounds || target.quantity || "");
+            setValue("targetListFfe1ChargeSelect", normalizeChargeSelectValue(target.ffe1Charge));
+            setValue("targetListFfe2Select", target.ffe2 || "");
+            setValue("targetListFfe2RoundsInput", target.ffe2Rounds || "");
+            setValue("targetListFfe2ChargeSelect", normalizeChargeSelectValue(target.ffe2Charge));
+            setValue("targetListTimeOnTargetInput", target.timeOnTarget || "");
+            setTargetListEngagementTimingMode(normalizeMethodOfControl(target.methodOfControl));
+            setTargetListFireControlMode(target.methodOfFireControl || "Fire for Effect");
             setValue("targetListRemarksInput", target.remarks || "");
             return true;
         }
@@ -5433,10 +5991,17 @@ ${getAngleModeMarkup()}
             setValue("targetListNumberInput", nextNumber);
             setValue("targetListLocationInput", target ? target.location : "");
             setValue("targetListAltitudeInput", target ? target.altitude : "");
+            setValue("targetListDirectionInput", target ? target.direction : "");
             setValue("targetListDescriptionInput", target ? target.description : "");
-            setValue("targetListAmmunitionInput", target ? target.ammunition : "");
-            setValue("targetListQuantityInput", target ? target.quantity : "");
-            setValue("targetListMethodControlInput", target ? target.methodOfControl : "When Ready");
+            setValue("targetListFfe1Select", target ? target.ffe1 : "");
+            setValue("targetListFfeRoundsInput", target ? target.ffe1Rounds : "");
+            setValue("targetListFfe1ChargeSelect", target ? normalizeChargeSelectValue(target.ffe1Charge) : "");
+            setValue("targetListFfe2Select", target ? target.ffe2 : "");
+            setValue("targetListFfe2RoundsInput", target ? target.ffe2Rounds : "");
+            setValue("targetListFfe2ChargeSelect", target ? normalizeChargeSelectValue(target.ffe2Charge) : "");
+            setValue("targetListTimeOnTargetInput", target ? target.timeOnTarget : "");
+            setTargetListEngagementTimingMode(target ? normalizeMethodOfControl(target.methodOfControl) : "When Ready");
+            setTargetListFireControlMode(target ? target.methodOfFireControl : "Fire for Effect");
             setValue("targetListRemarksInput", target ? target.remarks : "");
             const targetNumberInput = document.getElementById("targetListNumberInput");
             if (targetNumberInput) {
@@ -5480,10 +6045,20 @@ ${getAngleModeMarkup()}
                 targetNumber,
                 location,
                 altitude: clampNumberInputValue(altitude, 0, 999),
+                direction: clampNumberInputValue(getValue("targetListDirectionInput", ""), 0, 6400),
                 description: getValue("targetListDescriptionInput", ""),
-                ammunition: getValue("targetListAmmunitionInput", ""),
-                quantity: clampNumberInputValue(getValue("targetListQuantityInput", ""), 0, 999),
-                methodOfControl: getValue("targetListMethodControlInput", ""),
+                ammunition: getValue("targetListFfe1Select", ""),
+                quantity: clampNumberInputValue(getValue("targetListFfeRoundsInput", ""), 0, 999),
+                ffe1: getValue("targetListFfe1Select", ""),
+                ffe1Rounds: clampNumberInputValue(getValue("targetListFfeRoundsInput", ""), 0, 999),
+                ffe1Charge: getValue("targetListFfe1ChargeSelect", ""),
+                ffe2: getValue("targetListFfe2Select", ""),
+                ffe2Rounds: clampNumberInputValue(getValue("targetListFfe2RoundsInput", ""), 0, 999),
+                ffe2Charge: getValue("targetListFfe2ChargeSelect", ""),
+                methodOfEngagement: buildTargetListMethodOfEngagementString(),
+                methodOfControl: getValue("targetListEngagementTimingInput", "When Ready"),
+                methodOfFireControl: getTargetListFireControlMode(),
+                timeOnTarget: getValue("targetListTimeOnTargetInput", ""),
                 remarks: getValue("targetListRemarksInput", ""),
             };
             if (existingTarget) {
@@ -5632,27 +6207,25 @@ ${getAngleModeMarkup()}
                             <label>Altitude</label>
                             <input id="targetListAltitudeInput" type="number" min="0" max="999" placeholder="Meters" onblur="clampNumberInput('targetListAltitudeInput', 0, 999)">
                         </div>
-                        <div class="target-list-ammo-row">
-                            <div class="input-group">
-                                <label>Ammunition</label>
-                                <select id="targetListAmmunitionInput">${getAmmoOptionsMarkup()}</select>
-                            </div>
-                            <div class="input-group">
-                                <label>Qty</label>
-                                <input id="targetListQuantityInput" type="number" min="0" max="999" placeholder="Qty" onblur="clampNumberInput('targetListQuantityInput', 0, 999)">
-                            </div>
+                        <div class="input-group">
+                            <label>Direction to Target (mils)</label>
+                            <input id="targetListDirectionInput" type="number" min="0" max="6400" placeholder="Bearing (mils)" onblur="clampNumberInput('targetListDirectionInput', 0, 6400)">
                         </div>
                         <div class="input-group full-width">
-                            <label>Description</label>
+                            <label>Target Description</label>
                             <input id="targetListDescriptionInput" type="text" placeholder="Description">
                         </div>
-                        <div class="input-group">
-                            <label>Method of Control</label>
-                            <select id="targetListMethodControlInput">
-                                <option value="When Ready">When Ready</option>
-                                <option value="At my command">At my command</option>
-                                <option value="Time on target">Time on target</option>
-                            </select>
+                        <div class="input-group full-width">
+                            <label>Method of Engagement</label>
+${getTargetListEngagementControlsMarkup()}
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Method of Fire Control</label>
+                            <div class="target-list-fire-control-options">
+                                <button type="button" class="fire-control-button target-list-fire-control-button active" data-target-list-fire-control-mode="Fire for Effect" onclick="setTargetListFireControlMode('Fire for Effect')">Fire for Effect</button>
+                                <button type="button" class="fire-control-button target-list-fire-control-button" data-target-list-fire-control-mode="Adjust Fire" onclick="setTargetListFireControlMode('Adjust Fire')">Adjust Fire</button>
+                            </div>
+                            <input id="targetListMethodOfFireControlInput" type="hidden" value="Fire for Effect">
                         </div>
                         <div class="input-group full-width">
                             <label>Remarks</label>
@@ -5785,6 +6358,7 @@ ${getAngleModeMarkup()}
                     endedAt: new Date().toISOString(),
                     acknowledged: false,
                 }));
+                recipients.forEach(unitLabel => clearUnitCurrentTargetNumber(unitLabel));
             }
 
             // Clear current mission data
@@ -5905,6 +6479,26 @@ ${getAngleModeMarkup()}
         function clearPlanView() {
             const canvas = document.getElementById("planViewCanvas");
             if (!canvas) return;
+            planViewState.fireUnits = [];
+            planViewState.availableUnits = [];
+            planViewState.aimPoints = [];
+            planViewState.targetPoint = null;
+            planViewState.targetMarkers = [];
+            planViewState.hoverTargetKey = "";
+            planViewState.cursorPoint = null;
+            planViewState.worldToCanvas = null;
+            planViewState.canvasToWorld = null;
+            planViewState.viewLocked = false;
+            planViewState.viewCenter = null;
+            planViewState.viewScale = null;
+            planViewState.dragging = false;
+            planViewState.contextTarget = null;
+            planViewState.rangeRingUnitKeys = [];
+            hidePlanViewContextMenu();
+            if (getPlanViewAvailableUnits().length || getPlanViewGeometryOverlays().length) {
+                drawPlanView([], [], null);
+                return;
+            }
             const ctx = canvas.getContext("2d");
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -5913,6 +6507,500 @@ ${getAngleModeMarkup()}
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("No plan view data", canvas.width / 2, canvas.height / 2);
+        }
+
+        function refreshPlanViewMarkers() {
+            if (!planViewState.fireUnits.length && !planViewState.targetPoint && !getPlanViewAvailableUnits().length && !getPlanViewTargetMarkers().length && !getPlanViewGeometryOverlays().length) {
+                clearPlanView();
+                return;
+            }
+            drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+        }
+
+        function getPlanViewGeometryOverlays() {
+            normalizeGeometryOverlays();
+            return geometryOverlays.map(overlay => ({
+                ...overlay,
+                parsedPoints: overlay.points
+                    .map(grid => ({ grid, point: parseGridPoint(grid) }))
+                    .filter(item => item.point),
+            })).filter(overlay => overlay.parsedPoints.length > 0);
+        }
+
+        function getGeometryPolygonPoints(overlay) {
+            const points = (overlay.parsedPoints || []).map(item => item.point);
+            if (overlay.shape === "rectangular" && points.length >= 4) {
+                return points.slice(0, 4);
+            }
+            if (overlay.shape === "irregular" && points.length >= 3) {
+                return points;
+            }
+            return [];
+        }
+
+        function isPointInPolygon(point, polygon) {
+            if (!point || !Array.isArray(polygon) || polygon.length < 3) return false;
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].x, yi = polygon[i].y;
+                const xj = polygon[j].x, yj = polygon[j].y;
+                const intersects = ((yi > point.y) !== (yj > point.y)) &&
+                    (point.x < (xj - xi) * (point.y - yi) / ((yj - yi) || 0.000001) + xi);
+                if (intersects) inside = !inside;
+            }
+            return inside;
+        }
+
+        function getBlockingNoFireArea(point) {
+            return getPlanViewGeometryOverlays().find(overlay => {
+                if (overlay.effectType !== "No Fire Area") return false;
+                if (overlay.shape === "circle") {
+                    const center = overlay.parsedPoints[0] && overlay.parsedPoints[0].point;
+                    return center && Number(overlay.radius) > 0 && Math.hypot(point.x - center.x, point.y - center.y) <= Number(overlay.radius);
+                }
+                return isPointInPolygon(point, getGeometryPolygonPoints(overlay));
+            }) || null;
+        }
+
+        function getPlanViewTargetMarkerKey(marker) {
+            return `${marker.source}:${marker.label}:${Math.round(marker.point.x)}:${Math.round(marker.point.y)}`;
+        }
+
+        function getPlanViewUnitKey(unit) {
+            return `${unit.callsign || getActiveFdcCallsign()}:${unit.label}`;
+        }
+
+        function getPlanViewAvailableUnits() {
+            return ["A", "B", "C", "D"].map(label => {
+                const prefix = getUnitStoragePrefix(label);
+                const location = localStorage.getItem(`${prefix}Location`) || "";
+                const altitude = parseInt(localStorage.getItem(`${prefix}Altitude`), 10);
+                return {
+                    label,
+                    callsign: getActiveFdcCallsign(),
+                    location,
+                    altitude: Number.isNaN(altitude) ? 0 : altitude,
+                    operationalStatus: getUnitOperationalStatus(label),
+                };
+            }).filter(unit => (
+                isDfcsPresenceActive(unit.label) &&
+                isUnitMissionCapable(unit.label) &&
+                parseGridPoint(unit.location)
+            ));
+        }
+
+        function getPlanViewRangeRingMaxRange() {
+            const weaponSystem = getActiveWeaponSystem();
+            if (weaponSystem === "M777") return 5300;
+            if (weaponSystem === "M252 Mortar") return 2900;
+            if (weaponSystem === "2B14 Mortar") return 2200;
+            return 5000;
+        }
+
+        function getPlanViewRangeRingStep(maxRange) {
+            if (maxRange <= 2500) return 500;
+            return 1000;
+        }
+
+        function getCanvasPointFromEvent(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * (canvas.width / rect.width),
+                y: (event.clientY - rect.top) * (canvas.height / rect.height),
+            };
+        }
+
+        function findPlanViewTargetAtCanvasPoint(x, y) {
+            const candidates = [];
+            if (planViewState.targetPoint && planViewState.worldToCanvas) {
+                const canvasPoint = planViewState.worldToCanvas(planViewState.targetPoint);
+                candidates.push({
+                    label: getCurrentTargetNumber() || "Current Target",
+                    point: planViewState.targetPoint,
+                    canvasX: canvasPoint.x,
+                    canvasY: canvasPoint.y,
+                });
+            }
+            planViewState.targetMarkers.forEach(marker => candidates.push(marker));
+            let best = null;
+            let bestDistance = Infinity;
+            candidates.forEach(marker => {
+                if (!Number.isFinite(marker.canvasX) || !Number.isFinite(marker.canvasY)) return;
+                const distance = Math.hypot(marker.canvasX - x, marker.canvasY - y);
+                if (distance < 14 && distance < bestDistance) {
+                    best = marker;
+                    bestDistance = distance;
+                }
+            });
+            return best;
+        }
+
+        function findPlanViewUnitAtCanvasPoint(x, y) {
+            if (!planViewState.worldToCanvas) return null;
+            const candidates = [];
+            const addUnit = unit => {
+                const point = parseGridPoint(unit.location);
+                if (!point) return;
+                const canvasPoint = planViewState.worldToCanvas(point);
+                candidates.push({
+                    contextType: "unit",
+                    label: `${unit.label}${unit.callsign || getActiveFdcCallsign()}`,
+                    unit,
+                    key: getPlanViewUnitKey(unit),
+                    point,
+                    canvasX: canvasPoint.x,
+                    canvasY: canvasPoint.y,
+                });
+            };
+
+            planViewState.availableUnits.forEach(addUnit);
+            planViewState.fireUnits.forEach(addUnit);
+
+            let best = null;
+            let bestDistance = Infinity;
+            candidates.forEach(unit => {
+                if (!Number.isFinite(unit.canvasX) || !Number.isFinite(unit.canvasY)) return;
+                const distance = Math.hypot(unit.canvasX - x, unit.canvasY - y);
+                if (distance < 14 && distance < bestDistance) {
+                    best = unit;
+                    bestDistance = distance;
+                }
+            });
+            return best;
+        }
+
+        function hidePlanViewContextMenu() {
+            const menu = document.getElementById("planViewContextMenu");
+            if (menu) {
+                menu.classList.remove("open");
+            }
+            planViewState.contextTarget = null;
+        }
+
+        function showPlanViewContextMenu(event, target) {
+            const menu = document.getElementById("planViewContextMenu");
+            if (!menu || !target) return;
+            planViewState.contextTarget = target;
+            const isUnit = target.contextType === "unit";
+            const rangeRingActive = isUnit && planViewState.rangeRingUnitKeys.includes(target.key);
+            menu.innerHTML = isUnit
+                ? `
+                    <button type="button" onclick="centerPlanViewContextTarget()">Center on screen</button>
+                    <button type="button" onclick="togglePlanViewContextRangeRing()">${rangeRingActive ? "Hide" : "Show"} range rings</button>
+                `
+                : `<button type="button" onclick="centerPlanViewContextTarget()">Center on screen</button>`;
+            menu.style.left = `${event.clientX}px`;
+            menu.style.top = `${event.clientY}px`;
+            menu.classList.add("open");
+        }
+
+        function centerPlanViewOnPoint(point) {
+            if (!point || !planViewState.viewScale) return;
+            planViewState.viewLocked = true;
+            planViewState.viewCenter = { x: point.x, y: point.y };
+            drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+        }
+
+        function centerPlanViewContextTarget() {
+            if (planViewState.contextTarget) {
+                centerPlanViewOnPoint(planViewState.contextTarget.point);
+            }
+            hidePlanViewContextMenu();
+        }
+
+        function togglePlanViewContextRangeRing() {
+            const target = planViewState.contextTarget;
+            if (!target || target.contextType !== "unit" || !target.key) {
+                hidePlanViewContextMenu();
+                return;
+            }
+
+            if (planViewState.rangeRingUnitKeys.includes(target.key)) {
+                planViewState.rangeRingUnitKeys = planViewState.rangeRingUnitKeys.filter(key => key !== target.key);
+            } else {
+                planViewState.rangeRingUnitKeys = [...planViewState.rangeRingUnitKeys, target.key];
+            }
+            hidePlanViewContextMenu();
+            drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+        }
+
+        function getPlanViewTargetMarkers() {
+            const markers = [];
+            const seen = new Set();
+            const addMarker = (label, grid, source) => {
+                const point = parseGridPoint(grid);
+                const displayLabel = String(label || "").trim();
+                if (!point || !displayLabel) return;
+                const marker = { label: displayLabel, point, source };
+                const key = getPlanViewTargetMarkerKey(marker);
+                if (seen.has(key)) return;
+                seen.add(key);
+                markers.push(marker);
+            };
+
+            recordedTargets.forEach(target => {
+                const grid = target.type === "polar"
+                    ? target.adjustedAimGrid || target.location || target.originalGrid
+                    : target.originalGrid || target.location || target.adjustedAimGrid;
+                addMarker(target.name, grid, "recorded");
+            });
+
+            targetLists.forEach(list => {
+                (list.targets || []).forEach(target => {
+                    addMarker(target.targetNumber, target.location, "target-list");
+                });
+            });
+
+            return markers;
+        }
+
+        function drawPlanViewTargetCrosshair(ctx, x, y, hovered = false) {
+            const size = hovered ? 9 : 7;
+            ctx.save();
+            ctx.strokeStyle = hovered ? "#ffffff" : "#00d4ff";
+            ctx.lineWidth = hovered ? 2.5 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x - size, y);
+            ctx.lineTo(x + size, y);
+            ctx.moveTo(x, y - size);
+            ctx.lineTo(x, y + size);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x, y, hovered ? 5 : 4, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPlanViewAvailableUnit(ctx, unit, point) {
+            ctx.save();
+            ctx.fillStyle = "#00d4ff";
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.rect(point.x - 4, point.y - 4, 8, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.font = "12px Arial";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+            ctx.fillStyle = "#00d4ff";
+            ctx.fillText(`${unit.label}${unit.callsign || getActiveFdcCallsign()}`, point.x + 7, point.y - 7);
+            ctx.restore();
+        }
+
+        function drawPlanViewRangeRings(ctx, unit, unitPoint, worldToCanvas) {
+            const maxRange = getPlanViewRangeRingMaxRange();
+            const ringStep = getPlanViewRangeRingStep(maxRange);
+            const center = worldToCanvas(unitPoint);
+            const ranges = [];
+            for (let range = ringStep; range <= maxRange; range += ringStep) {
+                ranges.push(range);
+            }
+            if (!ranges.includes(maxRange)) {
+                ranges.push(maxRange);
+            }
+
+            ctx.save();
+            ctx.strokeStyle = "rgba(0, 212, 255, 0.35)";
+            ctx.fillStyle = "#00d4ff";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 6]);
+            ctx.font = "11px Arial";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+
+            ranges.forEach(range => {
+                const edge = worldToCanvas({ x: unitPoint.x + range, y: unitPoint.y });
+                const radius = Math.abs(edge.x - center.x);
+                if (radius < 3) return;
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                if (radius > 18) {
+                    const label = range >= 1000 ? `${range / 1000}km` : `${range}m`;
+                    ctx.fillText(label, center.x + radius + 4, center.y);
+                }
+            });
+
+            ctx.restore();
+        }
+
+        function getPlanViewGridStep(scale) {
+            if (!Number.isFinite(scale) || scale <= 0) return 1000;
+            const oneKmPixelSpacing = 1000 * scale;
+            const oneHundredMeterPixelSpacing = 100 * scale;
+            if (oneKmPixelSpacing < 38) return 10000;
+            if (oneHundredMeterPixelSpacing >= 34) return 100;
+            return 1000;
+        }
+
+        function formatPlanViewGridScale(gridStep) {
+            if (gridStep >= 1000) {
+                return `1 grid square = ${gridStep / 1000}km`;
+            }
+            return `1 grid square = ${gridStep}m`;
+        }
+
+        function drawPlanViewGeometry(ctx, overlay, worldToCanvas) {
+            const points = overlay.parsedPoints.map(item => worldToCanvas(item.point));
+            if (!points.length) return;
+
+            ctx.save();
+            const isNoFireArea = overlay.effectType === "No Fire Area";
+            const strokeColor = isNoFireArea ? "#ff3030" : "#00d4ff";
+            const fillColor = isNoFireArea ? "rgba(255, 48, 48, 0.14)" : "rgba(0, 212, 255, 0.12)";
+            ctx.strokeStyle = strokeColor;
+            ctx.fillStyle = fillColor;
+            ctx.lineWidth = 2;
+            const shape = overlay.shape || getGeometryShape(overlay);
+            const polygonPoints = getGeometryPolygonPoints(overlay).map(point => worldToCanvas(point));
+
+            if ((shape === "irregular" || shape === "rectangular") && polygonPoints.length >= 3) {
+                ctx.beginPath();
+                polygonPoints.forEach((point, index) => {
+                    if (index === 0) ctx.moveTo(point.x, point.y);
+                    else ctx.lineTo(point.x, point.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else if (shape === "circle" && points.length >= 1 && Number(overlay.radius) > 0) {
+                const center = points[0];
+                const edge = worldToCanvas({
+                    x: overlay.parsedPoints[0].point.x + Number(overlay.radius),
+                    y: overlay.parsedPoints[0].point.y,
+                });
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, Math.abs(edge.x - center.x), 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            } else if (shape === "line" && points.length >= 2) {
+                ctx.beginPath();
+                points.forEach((point, index) => {
+                    if (index === 0) ctx.moveTo(point.x, point.y);
+                    else ctx.lineTo(point.x, point.y);
+                });
+                ctx.stroke();
+            }
+
+            ctx.setLineDash([]);
+            points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 3.5, 0, 2 * Math.PI);
+                ctx.fillStyle = strokeColor;
+                ctx.fill();
+            });
+
+            const labelPoint = points[0];
+            ctx.font = "12px Arial";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+            ctx.fillStyle = strokeColor;
+            ctx.fillText(overlay.name || "Geometry", labelPoint.x + 7, labelPoint.y - 7);
+            ctx.restore();
+        }
+
+        function setupPlanViewHover() {
+            const canvas = document.getElementById("planViewCanvas");
+            if (!canvas) return;
+
+            const updatePlanViewHover = (x, y) => {
+                if (planViewState.canvasToWorld) {
+                    planViewState.cursorPoint = planViewState.canvasToWorld({ x, y });
+                }
+
+                const target = findPlanViewTargetAtCanvasPoint(x, y);
+                planViewState.hoverTargetKey = target && target.key ? target.key : "";
+                drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+                canvas.style.cursor = target ? "crosshair" : "grab";
+            };
+
+            const stopDragging = () => {
+                if (!planViewState.dragging) return;
+                planViewState.dragging = false;
+                planViewState.dragStartCanvas = null;
+                planViewState.dragStartCenter = null;
+                canvas.style.cursor = "grab";
+            };
+
+            canvas.addEventListener("mousedown", event => {
+                if (event.button !== 0 || !planViewState.viewCenter || !planViewState.viewScale) return;
+                hidePlanViewContextMenu();
+                const point = getCanvasPointFromEvent(canvas, event);
+                planViewState.dragging = true;
+                planViewState.viewLocked = true;
+                planViewState.dragStartCanvas = point;
+                planViewState.dragStartCenter = { ...planViewState.viewCenter };
+                canvas.style.cursor = "grabbing";
+            });
+
+            canvas.addEventListener("mousemove", event => {
+                const point = getCanvasPointFromEvent(canvas, event);
+                if (planViewState.dragging && planViewState.dragStartCanvas && planViewState.dragStartCenter && planViewState.viewScale) {
+                    const deltaX = (point.x - planViewState.dragStartCanvas.x) / planViewState.viewScale;
+                    const deltaY = (point.y - planViewState.dragStartCanvas.y) / planViewState.viewScale;
+                    planViewState.viewCenter = {
+                        x: planViewState.dragStartCenter.x - deltaX,
+                        y: planViewState.dragStartCenter.y + deltaY,
+                    };
+                    planViewState.cursorPoint = planViewState.canvasToWorld
+                        ? planViewState.canvasToWorld(point)
+                        : null;
+                    drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+                    canvas.style.cursor = "grabbing";
+                    return;
+                }
+
+                updatePlanViewHover(point.x, point.y);
+            });
+
+            canvas.addEventListener("mouseup", stopDragging);
+            window.addEventListener("mouseup", stopDragging);
+
+            canvas.addEventListener("wheel", event => {
+                if (!planViewState.canvasToWorld || !planViewState.viewScale) return;
+                event.preventDefault();
+                hidePlanViewContextMenu();
+                const point = getCanvasPointFromEvent(canvas, event);
+                const worldPoint = planViewState.canvasToWorld(point);
+                const zoomFactor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
+                const nextScale = Math.max(0.001, Math.min(50, planViewState.viewScale * zoomFactor));
+                planViewState.viewLocked = true;
+                planViewState.viewScale = nextScale;
+                planViewState.viewCenter = {
+                    x: worldPoint.x - (point.x - canvas.width / 2) / nextScale,
+                    y: worldPoint.y + (point.y - canvas.height / 2) / nextScale,
+                };
+                planViewState.cursorPoint = worldPoint;
+                drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+            }, { passive: false });
+
+            canvas.addEventListener("contextmenu", event => {
+                event.preventDefault();
+                const point = getCanvasPointFromEvent(canvas, event);
+                const contextTarget = findPlanViewTargetAtCanvasPoint(point.x, point.y) ||
+                    findPlanViewUnitAtCanvasPoint(point.x, point.y);
+                if (contextTarget) {
+                    showPlanViewContextMenu(event, contextTarget);
+                    return;
+                }
+                hidePlanViewContextMenu();
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                planViewState.cursorPoint = null;
+                planViewState.hoverTargetKey = "";
+                drawPlanView(planViewState.fireUnits, planViewState.aimPoints, planViewState.targetPoint);
+                canvas.style.cursor = planViewState.dragging ? "grabbing" : "default";
+            });
+
+            document.addEventListener("click", event => {
+                const menu = document.getElementById("planViewContextMenu");
+                if (!menu || !menu.classList.contains("open")) return;
+                if (menu.contains(event.target)) return;
+                hidePlanViewContextMenu();
+            });
         }
 
         function clearInputs() {
@@ -6369,6 +7457,36 @@ ${getAngleModeMarkup()}
             return str.trim();
         }
 
+        function buildTargetListMethodOfEngagementString() {
+            const ffe1 = getValue("targetListFfe1Select", "");
+            const rounds1 = getValue("targetListFfeRoundsInput", "");
+            const ffe2 = getValue("targetListFfe2Select", "");
+            const rounds2 = getValue("targetListFfe2RoundsInput", "");
+            const ffe1Charge = getFfeChargeText("targetListFfe1ChargeSelect");
+            const ffe2Charge = getFfeChargeText("targetListFfe2ChargeSelect");
+            const engagementTiming = getValue("targetListEngagementTimingInput", "When Ready");
+            const timeOnTarget = getValue("targetListTimeOnTargetInput", "");
+            const isAdjustFire = getTargetListFireControlMode() === "Adjust Fire";
+
+            let str = "";
+            if (isAdjustFire) {
+                const effects = [];
+                if (ffe1) effects.push(`FFE 1 ${ffe1}${ffe1Charge ? " " + ffe1Charge : ""}`);
+                if (ffe2) effects.push(`FFE 2 ${ffe2}${ffe2Charge ? " " + ffe2Charge : ""}`);
+                str = `1 round in effect${effects.length ? " - " + effects.join(" / ") : ""}`;
+            } else {
+                if (ffe1) str += ffe1;
+                if (rounds1) str += " " + rounds1;
+                if (ffe1Charge) str += " " + ffe1Charge;
+                if (ffe2) str += " / " + ffe2;
+                if (rounds2) str += " " + rounds2;
+                if (ffe2Charge) str += " " + ffe2Charge;
+            }
+            if (engagementTiming === "At my command") str += " AMC";
+            if (engagementTiming === "Time on target") str += ` TOT${timeOnTarget ? " " + timeOnTarget : ""}`;
+            return str.trim();
+        }
+
         function displayFiringResults(firingData) {
             const resultsContainer = document.getElementById("resultsContainer");
             if (!resultsContainer) return;
@@ -6415,6 +7533,7 @@ ${getAngleModeMarkup()}
             document.querySelector('.main-grid').style.display = 'none';
             document.getElementById("recordedTargetsPanel").style.display = "block";
             document.getElementById("fireplanPanel").style.display = "none";
+            document.getElementById("geometriesPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
             setTargetListSidebarOpen(true);
 
@@ -6431,6 +7550,7 @@ ${getAngleModeMarkup()}
             document.querySelector('.main-grid').style.display = 'none';
             document.getElementById("recordedTargetsPanel").style.display = "none";
             document.getElementById("fireplanPanel").style.display = "block";
+            document.getElementById("geometriesPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
             setTargetListSidebarOpen(false);
             initializeFireplanInputs();
@@ -6439,10 +7559,25 @@ ${getAngleModeMarkup()}
             document.getElementById("fireplanTab").classList.add("active");
         }
 
+        function showGeometries() {
+            saveCurrentMissionFormState();
+            document.querySelector('.main-grid').style.display = 'none';
+            document.getElementById("recordedTargetsPanel").style.display = "none";
+            document.getElementById("fireplanPanel").style.display = "none";
+            document.getElementById("geometriesPanel").style.display = "block";
+            document.getElementById("settingsPanel").style.display = "none";
+            setTargetListSidebarOpen(false);
+
+            document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+            document.getElementById("geometriesTab").classList.add("active");
+            updateGeometryOverlayList();
+        }
+
         function showSettings() {
             document.querySelector('.main-grid').style.display = 'none';
             document.getElementById("recordedTargetsPanel").style.display = "none";
             document.getElementById("fireplanPanel").style.display = "none";
+            document.getElementById("geometriesPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "block";
             setTargetListSidebarOpen(false);
 
@@ -6480,7 +7615,7 @@ ${getAngleModeMarkup()}
             }
 
             if (!mortarBallisticDataPromises[dataFile]) {
-                mortarBallisticDataPromises[dataFile] = fetch(dataFile)
+                mortarBallisticDataPromises[dataFile] = fetch(dataFile, { cache: "no-store" })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`Unable to load ${dataFile}`);
@@ -6511,7 +7646,7 @@ ${getAngleModeMarkup()}
             }
 
             if (!m777BallisticDataPromises[dataFile]) {
-                m777BallisticDataPromises[dataFile] = fetch(dataFile)
+                m777BallisticDataPromises[dataFile] = fetch(dataFile, { cache: "no-store" })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`Unable to load ${dataFile}`);
@@ -6575,7 +7710,9 @@ ${getAngleModeMarkup()}
                     return {
                         range,
                         elevation: lower.elevation + (upper.elevation - lower.elevation) * ratio,
-                        tof: lower.tof + (upper.tof - lower.tof) * ratio,
+                        tof: Number.isFinite(Number(lower.tof)) && Number.isFinite(Number(upper.tof))
+                            ? lower.tof + (upper.tof - lower.tof) * ratio
+                            : null,
                         dElev: lower.dElev !== undefined && upper.dElev !== undefined
                             ? lower.dElev + (upper.dElev - lower.dElev) * ratio
                             : lower.dElev,
@@ -6601,6 +7738,8 @@ ${getAngleModeMarkup()}
                 return null;
             }
 
+            const mortarMinElevation = 800;
+            const mortarMaxElevation = 1515;
             const chargeCandidates = forcedChargeLevel === null
                 ? shell.charges.filter(charge => range >= charge.minRange && range <= charge.maxRange)
                 : shell.charges.filter(charge => charge.level === forcedChargeLevel && range >= charge.minRange && range <= charge.maxRange);
@@ -6609,7 +7748,13 @@ ${getAngleModeMarkup()}
                     charge,
                     interpolated: interpolateRangeTable(range, charge.rangeTable)
                 }))
-                .filter(candidate => candidate.interpolated && candidate.interpolated.tof !== null && candidate.interpolated.tof !== undefined)
+                .filter(candidate =>
+                    candidate.interpolated &&
+                    candidate.interpolated.tof !== null &&
+                    candidate.interpolated.tof !== undefined &&
+                    candidate.interpolated.elevation >= mortarMinElevation &&
+                    candidate.interpolated.elevation <= mortarMaxElevation
+                )
                 .sort((a, b) => a.interpolated.tof - b.interpolated.tof);
             const selected = rankedCharges[0];
             if (!selected) {
@@ -6641,6 +7786,50 @@ ${getAngleModeMarkup()}
             return selected ? selected.level : null;
         }
 
+        function interpolateM777ProbableError(range, weaponData, shellType, chargeLevel, highAngleOnly) {
+            if (highAngleOnly) {
+                return 75;
+            }
+
+            const groups = weaponData && weaponData.measurementData && Array.isArray(weaponData.measurementData.lowAngleDispersion)
+                ? weaponData.measurementData.lowAngleDispersion
+                : [];
+            const group = groups.find(item =>
+                item.shellType === shellType &&
+                item.charge === chargeLevel &&
+                Array.isArray(item.points)
+            );
+            if (!group) {
+                return Infinity;
+            }
+
+            const points = group.points
+                .filter(point => Number.isFinite(Number(point.range)) && Number.isFinite(Number(point.probableErrorRange)))
+                .sort((a, b) => a.range - b.range);
+            if (!points.length) {
+                return Infinity;
+            }
+            if (range <= points[0].range) {
+                return points[0].probableErrorRange;
+            }
+            const lastPoint = points[points.length - 1];
+            if (range >= lastPoint.range) {
+                return lastPoint.probableErrorRange;
+            }
+
+            for (let i = 0; i < points.length - 1; i++) {
+                const lower = points[i];
+                const upper = points[i + 1];
+                if (range >= lower.range && range <= upper.range) {
+                    const span = upper.range - lower.range || 1;
+                    const ratio = (range - lower.range) / span;
+                    return lower.probableErrorRange + (upper.probableErrorRange - lower.probableErrorRange) * ratio;
+                }
+            }
+
+            return Infinity;
+        }
+
         function calculateM777FiringData(range, ammunitionType, heightDiffM, ballisticData, weaponSystem, forcedChargeLevel = null, highAngleOnly = false) {
             const weaponData = getM777WeaponData(ballisticData, weaponSystem);
             if (!weaponData) {
@@ -6654,30 +7843,62 @@ ${getAngleModeMarkup()}
             }
 
             const heightHundreds = (Number(heightDiffM) || 0) / 100;
+            const lowAngleDElevScale = 1;
+            const hasLowAngleTable = shell.charges.some(charge => Array.isArray(charge.lowAngleRangeTable));
+            if (!highAngleOnly && !hasLowAngleTable) {
+                return {
+                    ammunition: ammunitionType || shell.type,
+                    charge: forcedChargeLevel === null ? "N/A" : forcedChargeLevel,
+                    elevation: "N/A",
+                    time: "N/A",
+                    milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                    outOfRange: true,
+                };
+            }
+
             const chargeCandidates = forcedChargeLevel === null
                 ? shell.charges.filter(charge => range >= charge.minRange && range <= charge.maxRange)
                 : shell.charges.filter(charge => charge.level === forcedChargeLevel && range >= charge.minRange && range <= charge.maxRange);
             const rankedCharges = chargeCandidates
                 .map(charge => {
-                    const interpolated = interpolateRangeTable(range, charge.rangeTable);
+                    const table = highAngleOnly ? charge.rangeTable : charge.lowAngleRangeTable;
+                    const interpolated = interpolateRangeTable(range, table);
                     if (!interpolated) return null;
+                    const dElevScale = highAngleOnly ? 1 : lowAngleDElevScale;
+                    const verticalCorrection = (Number(interpolated.dElev) || 0) * dElevScale * heightHundreds;
+                    const timeCorrection = (Number(interpolated.tofPer100m) || 0) * heightHundreds;
 
-                    const maxRangeRow = charge.rangeTable.reduce((best, row) => row.range > best.range ? row : best, charge.rangeTable[0]);
-                    const highElevation = interpolated.elevation - (Number(interpolated.dElev) || 0) * heightHundreds;
-                    const highTime = interpolated.tof - (Number(interpolated.tofPer100m) || 0) * heightHundreds;
-                    const apexElevation = maxRangeRow.elevation - (Number(maxRangeRow.dElev) || 0) * heightHundreds;
-                    const apexTime = maxRangeRow.tof - (Number(maxRangeRow.tofPer100m) || 0) * heightHundreds;
-                    const lowElevation = Math.max(0, apexElevation - (highElevation - apexElevation));
-                    const lowTime = Math.max(0.1, apexTime - (highTime - apexTime));
                     return {
                         charge,
-                        elevation: highAngleOnly ? highElevation : lowElevation,
-                        time: highAngleOnly ? highTime : lowTime,
-                        maxRangeElevation: apexElevation
+                        elevation: highAngleOnly
+                            ? interpolated.elevation - verticalCorrection
+                            : interpolated.elevation + verticalCorrection,
+                        time: Number.isFinite(Number(interpolated.tof))
+                            ? interpolated.tof - timeCorrection
+                            : null,
+                        probableErrorRange: interpolateM777ProbableError(range, weaponData, shell.type, charge.level, highAngleOnly),
                     };
                 })
-                .filter(candidate => candidate && (!highAngleOnly || candidate.elevation >= candidate.maxRangeElevation))
-                .sort((a, b) => a.time - b.time);
+                .filter(candidate => {
+                    if (!candidate) return false;
+                    if (highAngleOnly) {
+                        return candidate.elevation >= 800 && candidate.elevation <= 1275;
+                    }
+                    return candidate.elevation >= 0 && candidate.elevation < 800;
+                })
+                .sort((a, b) => {
+                    if (forcedChargeLevel === null) {
+                        const practicalPeTieMeters = 25;
+                        const aPe = Number.isFinite(Number(a.probableErrorRange)) ? a.probableErrorRange : Infinity;
+                        const bPe = Number.isFinite(Number(b.probableErrorRange)) ? b.probableErrorRange : Infinity;
+                        if (Math.abs(aPe - bPe) <= practicalPeTieMeters && a.charge.level !== b.charge.level) {
+                            return a.charge.level - b.charge.level;
+                        }
+                        if (Math.abs(aPe - bPe) > 0.01) return aPe - bPe;
+                        if (a.charge.level !== b.charge.level) return a.charge.level - b.charge.level;
+                    }
+                    return (Number.isFinite(Number(a.time)) ? a.time : Infinity) - (Number.isFinite(Number(b.time)) ? b.time : Infinity);
+                });
             const selected = rankedCharges[0];
             if (!selected) {
                 return {
@@ -6695,6 +7916,7 @@ ${getAngleModeMarkup()}
                 charge: selected.charge.level,
                 elevation: selected.elevation,
                 time: selected.time,
+                probableErrorRange: selected.probableErrorRange,
                 milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                 outOfRange: false,
             };
@@ -6758,6 +7980,7 @@ ${getAngleModeMarkup()}
                     location,
                     altitude: Number.isNaN(altitude) ? 0 : altitude,
                     operationalStatus: getUnitOperationalStatus(label),
+                    crestMinimumElevation: getUnitCrestMinimumElevation(label),
                 });
             }
             return units;
@@ -6808,6 +8031,21 @@ ${getAngleModeMarkup()}
             const ctx = canvas.getContext("2d");
             const width = canvas.width;
             const height = canvas.height;
+            const safeFireUnits = fireUnits || [];
+            const safeAimPoints = aimPoints || [];
+            const availableUnits = getPlanViewAvailableUnits();
+            const rangeRingUnits = [...availableUnits];
+            safeFireUnits.forEach(unit => {
+                if (!rangeRingUnits.some(existing => getPlanViewUnitKey(existing) === getPlanViewUnitKey(unit))) {
+                    rangeRingUnits.push(unit);
+                }
+            });
+            const targetMarkers = getPlanViewTargetMarkers();
+            const geometryMarkers = getPlanViewGeometryOverlays();
+            planViewState.fireUnits = safeFireUnits;
+            planViewState.availableUnits = availableUnits;
+            planViewState.aimPoints = safeAimPoints;
+            planViewState.targetPoint = targetPoint || null;
 
             // Clear canvas
             ctx.fillStyle = "#000";
@@ -6816,11 +8054,11 @@ ${getAngleModeMarkup()}
             // Find bounds and center on fire units/origin
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             const gunPoints = [];
-            fireUnits.forEach((unit, i) => {
+            safeFireUnits.forEach((unit, i) => {
                 const gunPoint = parseGridPoint(unit.location);
                 if (gunPoint) {
                     gunPoints.push(gunPoint);
-                    const aimPoint = aimPoints[i];
+                    const aimPoint = safeAimPoints[i];
                     if (aimPoint) {
                         minX = Math.min(minX, gunPoint.x, aimPoint.x);
                         maxX = Math.max(maxX, gunPoint.x, aimPoint.x);
@@ -6835,12 +8073,58 @@ ${getAngleModeMarkup()}
                 }
             });
 
+            rangeRingUnits.forEach(unit => {
+                const point = parseGridPoint(unit.location);
+                if (!point) return;
+                minX = Math.min(minX, point.x);
+                maxX = Math.max(maxX, point.x);
+                minY = Math.min(minY, point.y);
+                maxY = Math.max(maxY, point.y);
+                if (planViewState.rangeRingUnitKeys.includes(getPlanViewUnitKey(unit))) {
+                    const maxRange = getPlanViewRangeRingMaxRange();
+                    minX = Math.min(minX, point.x - maxRange);
+                    maxX = Math.max(maxX, point.x + maxRange);
+                    minY = Math.min(minY, point.y - maxRange);
+                    maxY = Math.max(maxY, point.y + maxRange);
+                }
+            });
+
             if (targetPoint) {
                 minX = Math.min(minX, targetPoint.x);
                 maxX = Math.max(maxX, targetPoint.x);
                 minY = Math.min(minY, targetPoint.y);
                 maxY = Math.max(maxY, targetPoint.y);
             }
+
+            targetMarkers.forEach(marker => {
+                minX = Math.min(minX, marker.point.x);
+                maxX = Math.max(maxX, marker.point.x);
+                minY = Math.min(minY, marker.point.y);
+                maxY = Math.max(maxY, marker.point.y);
+            });
+
+            geometryMarkers.forEach(overlay => {
+                overlay.parsedPoints.forEach(item => {
+                    minX = Math.min(minX, item.point.x);
+                    maxX = Math.max(maxX, item.point.x);
+                    minY = Math.min(minY, item.point.y);
+                    maxY = Math.max(maxY, item.point.y);
+                });
+                getGeometryPolygonPoints(overlay).forEach(point => {
+                    minX = Math.min(minX, point.x);
+                    maxX = Math.max(maxX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxY = Math.max(maxY, point.y);
+                });
+                if (overlay.shape === "circle" && overlay.parsedPoints[0] && Number(overlay.radius) > 0) {
+                    const center = overlay.parsedPoints[0].point;
+                    const radius = Number(overlay.radius);
+                    minX = Math.min(minX, center.x - radius);
+                    maxX = Math.max(maxX, center.x + radius);
+                    minY = Math.min(minY, center.y - radius);
+                    maxY = Math.max(maxY, center.y + radius);
+                }
+            });
 
             if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) {
                 minX = 0;
@@ -6854,24 +8138,46 @@ ${getAngleModeMarkup()}
             const paddingFactor = 0.2;
             const paddedRangeX = rangeX * (1 + paddingFactor) + 200;
             const paddedRangeY = rangeY * (1 + paddingFactor) + 200;
-            const scale = Math.min(width / paddedRangeX, height / paddedRangeY);
+            const autoScale = Math.min(width / paddedRangeX, height / paddedRangeY);
             const centerX = width / 2;
             const centerY = height / 2;
-            const gridStep = 1000;
 
-            const worldCenterX = (minX + maxX) / 2;
-            const worldCenterY = (minY + maxY) / 2;
+            const autoWorldCenterX = (minX + maxX) / 2;
+            const autoWorldCenterY = (minY + maxY) / 2;
+            const scale = planViewState.viewLocked && Number.isFinite(planViewState.viewScale)
+                ? planViewState.viewScale
+                : autoScale;
+            const worldCenterX = planViewState.viewLocked && planViewState.viewCenter
+                ? planViewState.viewCenter.x
+                : autoWorldCenterX;
+            const worldCenterY = planViewState.viewLocked && planViewState.viewCenter
+                ? planViewState.viewCenter.y
+                : autoWorldCenterY;
+            planViewState.viewScale = scale;
+            planViewState.viewCenter = { x: worldCenterX, y: worldCenterY };
             const leftWorld = worldCenterX - (width / scale) / 2;
             const rightWorld = worldCenterX + (width / scale) / 2;
             const topWorld = worldCenterY + (height / scale) / 2;
             const bottomWorld = worldCenterY - (height / scale) / 2;
+            const worldToCanvas = point => ({
+                x: centerX + (point.x - worldCenterX) * scale,
+                y: centerY - (point.y - worldCenterY) * scale,
+            });
+            const canvasToWorld = point => ({
+                x: worldCenterX + (point.x - centerX) / scale,
+                y: worldCenterY - (point.y - centerY) / scale,
+            });
+            planViewState.worldToCanvas = worldToCanvas;
+            planViewState.canvasToWorld = canvasToWorld;
+            const gridStep = getPlanViewGridStep(scale);
 
-            if (gunPoints.length === 0) {
+            if (gunPoints.length === 0 && availableUnits.length === 0 && targetMarkers.length === 0 && geometryMarkers.length === 0) {
                 ctx.fillStyle = "#00ff66";
                 ctx.font = "16px Arial";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText("No valid unit origins available", centerX, centerY);
+                planViewState.targetMarkers = [];
                 return;
             }
 
@@ -6897,22 +8203,45 @@ ${getAngleModeMarkup()}
                 ctx.stroke();
             }
 
+            geometryMarkers.forEach(overlay => {
+                drawPlanViewGeometry(ctx, overlay, worldToCanvas);
+            });
+
+            rangeRingUnits.forEach(unit => {
+                const point = parseGridPoint(unit.location);
+                if (!point || !planViewState.rangeRingUnitKeys.includes(getPlanViewUnitKey(unit))) return;
+                drawPlanViewRangeRings(ctx, unit, point, worldToCanvas);
+            });
+
+            availableUnits.forEach(unit => {
+                const point = parseGridPoint(unit.location);
+                if (!point) return;
+                drawPlanViewAvailableUnit(ctx, unit, worldToCanvas(point));
+            });
+
             // Draw lines from guns to aims
             ctx.strokeStyle = "#00ff66";
             ctx.lineWidth = 2;
-            fireUnits.forEach((unit, i) => {
+            safeFireUnits.forEach((unit, i) => {
                 const gunPoint = parseGridPoint(unit.location);
                 if (gunPoint) {
-                    const aim = aimPoints[i];
-                    const x1 = centerX + (gunPoint.x - worldCenterX) * scale;
-                    const y1 = centerY - (gunPoint.y - worldCenterY) * scale; // y inverted
-                    const x2 = centerX + (aim.x - worldCenterX) * scale;
-                    const y2 = centerY - (aim.y - worldCenterY) * scale;
+                    const aim = safeAimPoints[i];
+                    const gunCanvas = worldToCanvas(gunPoint);
+                    const x1 = gunCanvas.x;
+                    const y1 = gunCanvas.y;
+                    let x2 = null;
+                    let y2 = null;
 
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
+                    if (aim) {
+                        const aimCanvas = worldToCanvas(aim);
+                        x2 = aimCanvas.x;
+                        y2 = aimCanvas.y;
+
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
 
                     // Draw gun point
                     ctx.fillStyle = "#ff0000";
@@ -6921,16 +8250,93 @@ ${getAngleModeMarkup()}
                     ctx.fill();
 
                     // Draw aim point
-                    ctx.fillStyle = "#ffff00";
-                    ctx.beginPath();
-                    ctx.arc(x2, y2, 4, 0, 2 * Math.PI);
-                    ctx.fill();
+                    if (aim) {
+                        ctx.fillStyle = "#ffff00";
+                        ctx.beginPath();
+                        ctx.arc(x2, y2, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
 
                     // Draw label
                     ctx.fillStyle = "#00ff66";
                     ctx.fillText(unit.label, x1 + 6, y1 - 6);
                 }
             });
+
+            const renderedTargetMarkers = targetMarkers.map(marker => {
+                const canvasPoint = worldToCanvas(marker.point);
+                return {
+                    ...marker,
+                    key: getPlanViewTargetMarkerKey(marker),
+                    canvasX: canvasPoint.x,
+                    canvasY: canvasPoint.y,
+                };
+            });
+            planViewState.targetMarkers = renderedTargetMarkers;
+
+            renderedTargetMarkers.forEach(marker => {
+                drawPlanViewTargetCrosshair(ctx, marker.canvasX, marker.canvasY, marker.key === planViewState.hoverTargetKey);
+            });
+
+            const hoveredMarker = renderedTargetMarkers.find(marker => marker.key === planViewState.hoverTargetKey);
+            if (hoveredMarker) {
+                const label = hoveredMarker.label;
+                ctx.save();
+                ctx.font = "12px Arial";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                const textWidth = ctx.measureText(label).width;
+                const boxWidth = textWidth + 14;
+                const boxHeight = 22;
+                const boxX = Math.min(width - boxWidth - 8, hoveredMarker.canvasX + 12);
+                const boxY = Math.max(8, Math.min(height - boxHeight - 8, hoveredMarker.canvasY - boxHeight - 8));
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.strokeStyle = "#00d4ff";
+                ctx.lineWidth = 1;
+                ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(label, boxX + 7, boxY + boxHeight / 2);
+                ctx.restore();
+            }
+
+            if (planViewState.cursorPoint) {
+                const cursorGrid = formatGridString(planViewState.cursorPoint);
+                ctx.save();
+                ctx.font = "12px Arial";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                const boxWidth = ctx.measureText(cursorGrid).width + 16;
+                const boxHeight = 24;
+                const boxX = 8;
+                const boxY = height - boxHeight - 8;
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.strokeStyle = "#00ff66";
+                ctx.lineWidth = 1;
+                ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+                ctx.fillStyle = "#00ff66";
+                ctx.fillText(cursorGrid, boxX + 8, boxY + boxHeight / 2);
+                ctx.restore();
+            }
+
+            const scaleLabel = formatPlanViewGridScale(gridStep);
+            ctx.save();
+            ctx.font = "12px Arial";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            const scaleBoxWidth = ctx.measureText(scaleLabel).width + 16;
+            const scaleBoxHeight = 24;
+            const scaleBoxX = width - scaleBoxWidth - 8;
+            const scaleBoxY = height - scaleBoxHeight - 8;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.strokeStyle = "#00ff66";
+            ctx.lineWidth = 1;
+            ctx.fillRect(scaleBoxX, scaleBoxY, scaleBoxWidth, scaleBoxHeight);
+            ctx.strokeRect(scaleBoxX, scaleBoxY, scaleBoxWidth, scaleBoxHeight);
+            ctx.fillStyle = "#00ff66";
+            ctx.fillText(scaleLabel, scaleBoxX + scaleBoxWidth - 8, scaleBoxY + scaleBoxHeight / 2);
+            ctx.restore();
         }
 
         function drawElevationProfile(fireUnits, aimPoints, targetAltitude) {
@@ -6988,6 +8394,7 @@ ${getAngleModeMarkup()}
             document.getElementById("polarTab").classList.remove("active");
             document.getElementById("recordedTargetsTab").classList.remove("active");
             document.getElementById("fireplanTab").classList.remove("active");
+            document.getElementById("geometriesTab").classList.remove("active");
             document.getElementById("settingsTab").classList.remove("active");
             setTargetListSidebarOpen(false);
 
@@ -6995,6 +8402,7 @@ ${getAngleModeMarkup()}
             document.getElementById("formArea").style.display = "block";
             document.getElementById("recordedTargetsPanel").style.display = "none";
             document.getElementById("fireplanPanel").style.display = "none";
+            document.getElementById("geometriesPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
 
             document.getElementById("formArea").innerHTML = `
@@ -7069,6 +8477,7 @@ ${getEngagementControlsMarkup()}
             setupCalculateButton();
             setupTargetNumberAutofill();
             updateFireButtonState();
+            requestAnimationFrame(refreshPlanViewMarkers);
         }
 
         function showPolar(keepCalculationState = false) {
@@ -7081,6 +8490,7 @@ ${getEngagementControlsMarkup()}
             document.getElementById("gridTab").classList.remove("active");
             document.getElementById("recordedTargetsTab").classList.remove("active");
             document.getElementById("fireplanTab").classList.remove("active");
+            document.getElementById("geometriesTab").classList.remove("active");
             document.getElementById("settingsTab").classList.remove("active");
             setTargetListSidebarOpen(false);
 
@@ -7088,6 +8498,7 @@ ${getEngagementControlsMarkup()}
             document.getElementById("formArea").style.display = "block";
             document.getElementById("recordedTargetsPanel").style.display = "none";
             document.getElementById("fireplanPanel").style.display = "none";
+            document.getElementById("geometriesPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
 
             document.getElementById("formArea").innerHTML = `
@@ -7168,6 +8579,7 @@ ${getEngagementControlsMarkup()}
             setupCalculateButton();
             setupTargetNumberAutofill();
             updateFireButtonState();
+            requestAnimationFrame(refreshPlanViewMarkers);
         }
 
         function setupCalculateButton() {
@@ -7259,6 +8671,7 @@ ${getEngagementControlsMarkup()}
                             ${showCountdown ? "<th>Fire Countdown</th>" : ""}
                             <th>Time of Flight</th>
                             <th>Adjusted Aim Grid</th>
+                            <th>Local Crest</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -7273,6 +8686,7 @@ ${getEngagementControlsMarkup()}
                                 ${showCountdown ? `<td>${solution.countdown || ""}</td>` : ""}
                                 <td>${solution.time}</td>
                                 <td>${solution.aimGrid}</td>
+                                <td>${solution.localCrestCapable ? "Y" : "N"}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -7367,7 +8781,24 @@ ${getEngagementControlsMarkup()}
             
             let targetAltitude = 0;
             let targetPoint = null;
-            const usingStoredAimPoint = (lastCalculationState.currentAdjustment || lastCalculationState.useStoredAimPoint) && lastCalculationState.targetPoint;
+            let usingStoredAimPoint = (lastCalculationState.currentAdjustment || lastCalculationState.useStoredAimPoint) && lastCalculationState.targetPoint;
+
+            if (usingStoredAimPoint && isGridMode) {
+                const targetLocationInput = document.getElementById("targetLocationInput");
+                const targetAltitudeInput = document.getElementById("targetAltitudeInput");
+                const typedTargetPoint = parseGridPoint(targetLocationInput && targetLocationInput.value);
+                const typedTargetAltitude = parseFloat(targetAltitudeInput && targetAltitudeInput.value);
+                const targetChanged = typedTargetPoint && (
+                    Math.abs(typedTargetPoint.x - lastCalculationState.targetPoint.x) > 0.01 ||
+                    Math.abs(typedTargetPoint.y - lastCalculationState.targetPoint.y) > 0.01
+                );
+                const altitudeChanged = Number.isFinite(typedTargetAltitude) &&
+                    Math.abs(typedTargetAltitude - lastCalculationState.targetAltitude) > 0.01;
+                if (targetChanged || altitudeChanged) {
+                    resetCalculationState();
+                    usingStoredAimPoint = false;
+                }
+            }
 
             // Check if we're using a previously adjusted or reopened target point.
             if (usingStoredAimPoint) {
@@ -7422,6 +8853,20 @@ ${getEngagementControlsMarkup()}
                         y: referencePoint.y + Math.cos(directionRad) * offsetDistance,
                     };
                 }
+            }
+
+            const blockingNoFireArea = getBlockingNoFireArea(targetPoint);
+            if (blockingNoFireArea) {
+                alert(`Target is inside No Fire Area: ${blockingNoFireArea.name || "Unnamed geometry"}. Firing solution blocked.`);
+                activeFiringSolutions = [];
+                const blockedResultsContainer = document.getElementById("resultsContainer");
+                if (blockedResultsContainer) {
+                    blockedResultsContainer.innerHTML = `<div class="no-results"><div class="result-group-title">No Fire Area</div><div class="result-item"><div class="result-title">Target is inside ${escapeHtml(blockingNoFireArea.name || "Unnamed geometry")}.</div></div></div>`;
+                }
+                localStorage.removeItem("pendingFiringSolutions");
+                updateFireButtonState();
+                drawPlanView(fireUnits, [], targetPoint);
+                return;
             }
 
             const resultsContainer = document.getElementById("resultsContainer");
@@ -7530,9 +8975,68 @@ ${getEngagementControlsMarkup()}
                 const correctedAimPoint = applyMeteorologicalCorrection(aimPoint, initialSolution.timeOfFlightSeconds, metData);
                 aimPoints[index] = correctedAimPoint;
                 const finalSolution = calculateForAimPoint(correctedAimPoint);
+                const finalElevationMils = finalSolution.tableFiringData
+                    ? (finalSolution.tableFiringData.outOfRange ? null : finalSolution.tableFiringData.elevation)
+                    : finalSolution.elevationMils;
+                const crestMinimum = Number.isFinite(unit.crestMinimumElevation) ? unit.crestMinimumElevation : null;
+                const crestBlocked = crestMinimum !== null &&
+                    Number.isFinite(finalElevationMils) &&
+                    finalElevationMils < crestMinimum;
+
+                if (crestBlocked) {
+                    let crestHighAngleSolution = null;
+                    if (!highAngleOnly && usesM777BallisticData && m777Data) {
+                        const highAngleCheck = calculateM777FiringData(finalSolution.range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem, forcedChargeLevel, true);
+                        if (highAngleCheck && !highAngleCheck.outOfRange && Number.isFinite(highAngleCheck.elevation) && highAngleCheck.elevation >= crestMinimum) {
+                            crestHighAngleSolution = highAngleCheck;
+                        }
+                    }
+
+                    if (crestHighAngleSolution) {
+                        solutions.push({
+                            label: unit.label,
+                            localCrestCapable: true,
+                            crestMinimumElevation: crestMinimum,
+                            computedElevation: finalElevationMils,
+                            ammunition: crestHighAngleSolution.ammunition || (finalSolution.tableFiringData ? finalSolution.tableFiringData.ammunition : ""),
+                            range: `${formatNumber(finalSolution.range, 1)} m`,
+                            bearing: `${formatNumber(finalSolution.bearingMils, 0)} mils`,
+                            elevation: `${formatNumber(crestHighAngleSolution.elevation, 0)} mils`,
+                            charge: crestHighAngleSolution.charge,
+                            time: crestHighAngleSolution.time === null ? "N/A" : `${formatNumber(crestHighAngleSolution.time, 1)} s`,
+                            timeOfFlightSeconds: crestHighAngleSolution.time,
+                            countdown: crestHighAngleSolution.time === null ? "" : getTimeOnTargetCountdown(crestHighAngleSolution.time),
+                            aimGrid: formatGridString(correctedAimPoint),
+                            targetAltitude: `${formatNumber(targetAltitude, 0)} m`,
+                            gunAltitude: `${formatNumber(unit.altitude, 0)} m`,
+                        });
+                        return;
+                    }
+
+                    solutions.push({
+                        label: unit.label,
+                        crestBlocked: true,
+                        localCrestCapable: false,
+                        crestMinimumElevation: crestMinimum,
+                        computedElevation: finalElevationMils,
+                        ammunition: finalSolution.tableFiringData ? finalSolution.tableFiringData.ammunition : "",
+                        range: `${formatNumber(finalSolution.range, 1)} m`,
+                        bearing: `${formatNumber(finalSolution.bearingMils, 0)} mils`,
+                        elevation: "N/A",
+                        charge: finalSolution.tableFiringData ? finalSolution.tableFiringData.charge : "",
+                        time: "N/A",
+                        timeOfFlightSeconds: null,
+                        countdown: "",
+                        aimGrid: formatGridString(correctedAimPoint),
+                        targetAltitude: `${formatNumber(targetAltitude, 0)} m`,
+                        gunAltitude: `${formatNumber(unit.altitude, 0)} m`,
+                    });
+                    return;
+                }
 
                 solutions.push({
                     label: unit.label,
+                    localCrestCapable: crestMinimum !== null,
                     ammunition: finalSolution.tableFiringData ? finalSolution.tableFiringData.ammunition : "",
                     range: `${formatNumber(finalSolution.range, 1)} m`,
                     bearing: `${formatNumber(finalSolution.bearingMils, 0)} mils`,
@@ -7541,7 +9045,7 @@ ${getEngagementControlsMarkup()}
                         : (finalSolution.elevationMils === null ? "N/A" : `${formatNumber(finalSolution.elevationMils, 0)} mils`),
                     charge: finalSolution.tableFiringData ? finalSolution.tableFiringData.charge : "",
                     time: finalSolution.tableFiringData
-                        ? (finalSolution.tableFiringData.outOfRange ? "N/A" : `${formatNumber(finalSolution.tableFiringData.time, 1)} s`)
+                        ? (finalSolution.tableFiringData.outOfRange || finalSolution.tableFiringData.time === null ? "N/A" : `${formatNumber(finalSolution.tableFiringData.time, 1)} s`)
                         : (finalSolution.timeOfFlight === null ? "N/A" : `${formatNumber(finalSolution.timeOfFlight, 2)} s`),
                     timeOfFlightSeconds: finalSolution.timeOfFlightSeconds,
                     countdown: finalSolution.timeOfFlightSeconds === null ? "" : getTimeOnTargetCountdown(finalSolution.timeOfFlightSeconds),
@@ -7735,6 +9239,8 @@ ${getEngagementControlsMarkup()}
             updateNotificationVolumeDisplay();
             startZuluClock();
             updateDistributionInputs();
+            setupPlanViewHover();
+            refreshPlanViewMarkers();
 
             // Setup adjustment button
             const applyBtn = document.getElementById("applyAdjustmentBtn");
@@ -7768,6 +9274,8 @@ ${getEngagementControlsMarkup()}
 
             updateTargetListsDisplay();
             updateRecordedTargetsDisplay();
+            updateGeometryOverlayList();
+            renderGeometryShapeInputs();
             showGrid();
         }
 

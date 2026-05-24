@@ -234,6 +234,14 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .utility-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
@@ -247,7 +255,9 @@
         }
 
         .ready-button.sent {
-            background-color: #9dffbf;
+            background-color: #00ff66;
+            color: #000;
+            border: none;
         }
 
         .rounds-complete-button {
@@ -363,6 +373,56 @@
         }
 
         .moving-location-panel button {
+            height: 38px;
+            font-weight: bold;
+        }
+
+        .crest-button {
+            min-width: 130px;
+            background-color: #000;
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            font-weight: bold;
+        }
+
+        .crest-button.active {
+            background-color: #332700;
+        }
+
+        .crest-panel {
+            display: none;
+            grid-template-columns: minmax(160px, 1fr) auto auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 20px;
+            border: 1px solid #ffcc00;
+            padding: 10px;
+            background-color: #100d00;
+        }
+
+        .crest-panel.visible {
+            display: grid;
+        }
+
+        .crest-panel label {
+            display: block;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #ffdf66;
+        }
+
+        .crest-panel input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            background-color: #000;
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            font-size: 14px;
+        }
+
+        .crest-panel button {
             height: 38px;
             font-weight: bold;
         }
@@ -553,10 +613,14 @@
                 <button class="ready-button" id="readyButton" onclick="markReady()" disabled>READY</button>
                 <button class="rounds-complete-button" id="roundsCompleteButton" onclick="sendRoundsComplete()" disabled>ROUNDS COMPLETE</button>
                 <button class="deny-button" id="denyMissionButton" onclick="denyMission()" disabled>DENY</button>
-                <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
                 <div class="command-status" id="commandStatus">Waiting for FDC firing data.</div>
                 <div class="sound-status" id="soundStatus"></div>
                 <div class="ping-status" id="pingStatus">Ping not sent.</div>
+            </div>
+
+            <div class="utility-row">
+                <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
+                <button class="crest-button" id="crestButton" onclick="toggleCrestPanel()">CREST DATA</button>
             </div>
 
             <div class="moving-location-panel" id="movingLocationPanel">
@@ -569,6 +633,15 @@
                     <input id="movingAltitudeInput" type="number" min="0" max="999" placeholder="m">
                 </div>
                 <button type="button" onclick="applyMovingLocation()">APPLY</button>
+            </div>
+
+            <div class="crest-panel" id="crestPanel">
+                <div>
+                    <label for="crestMinimumElevationInput">Minimum Elevation (mils)</label>
+                    <input id="crestMinimumElevationInput" type="number" min="0" max="1600" placeholder="No crest limit">
+                </div>
+                <button type="button" onclick="applyCrestMinimumElevation()">APPLY</button>
+                <button type="button" onclick="clearCrestMinimumElevation()">CLEAR</button>
             </div>
 
             <div class="fire-warning" id="fireWarning">
@@ -799,6 +872,9 @@
         }
 
         let lastPresenceWriteMs = 0;
+        let movingLocationInputDirty = false;
+        let movingAltitudeInputDirty = false;
+        let crestPanelOpen = false;
 
         function writeDfcsPresence(force = false) {
             if (!force && Date.now() - lastPresenceWriteMs < 4000) {
@@ -863,6 +939,60 @@
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingAltitude`) || "";
         }
 
+        function getCrestMinimumElevation(unit = getAssignedUnit()) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}CrestMinimumElevation`) || "";
+        }
+
+        function toggleCrestPanel() {
+            crestPanelOpen = !crestPanelOpen;
+            renderDfcs();
+        }
+
+        function applyCrestMinimumElevation() {
+            const input = document.getElementById("crestMinimumElevationInput");
+            const value = parseInt(String(input && input.value || "").replace(/\D/g, ""), 10);
+            if (Number.isNaN(value)) {
+                alert("Enter a minimum elevation in mils.");
+                return;
+            }
+            const clamped = String(Math.max(0, Math.min(1600, value)));
+            localStorage.setItem(`${getUnitStoragePrefix()}CrestMinimumElevation`, clamped);
+            if (input) input.value = clamped;
+            renderDfcs();
+        }
+
+        function clearCrestMinimumElevation() {
+            localStorage.removeItem(`${getUnitStoragePrefix()}CrestMinimumElevation`);
+            const input = document.getElementById("crestMinimumElevationInput");
+            if (input) input.value = "";
+            renderDfcs();
+        }
+
+        function setCurrentTargetNumber(targetNumber) {
+            const normalizedTarget = String(targetNumber || "").trim();
+            if (!normalizedTarget) return;
+            localStorage.setItem(`${getUnitStoragePrefix()}CurrentTargetNumber`, normalizedTarget);
+        }
+
+        function clearCurrentTargetNumber() {
+            localStorage.removeItem(`${getUnitStoragePrefix()}CurrentTargetNumber`);
+        }
+
+        function setupMovingLocationInputs() {
+            const locationInput = document.getElementById("movingLocationInput");
+            const altitudeInput = document.getElementById("movingAltitudeInput");
+            if (locationInput) {
+                locationInput.addEventListener("input", () => {
+                    movingLocationInputDirty = true;
+                });
+            }
+            if (altitudeInput) {
+                altitudeInput.addEventListener("input", () => {
+                    movingAltitudeInputDirty = true;
+                });
+            }
+        }
+
         function applyMovingLocation() {
             const assignedUnit = getAssignedUnit();
             const locationInput = document.getElementById("movingLocationInput");
@@ -882,6 +1012,8 @@
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingAltitude`, altitude);
             if (locationInput) locationInput.value = grid;
             if (altitudeInput) altitudeInput.value = altitude;
+            movingLocationInputDirty = false;
+            movingAltitudeInputDirty = false;
             renderDfcs();
         }
 
@@ -910,6 +1042,10 @@
         function toggleMovementStatus() {
             const currentStatus = getUnitOperationalStatus();
             const nextStatus = currentStatus === "stationary" ? "moving" : "stationary";
+            if (nextStatus === "moving") {
+                movingLocationInputDirty = false;
+                movingAltitudeInputDirty = false;
+            }
             if (currentStatus === "moving" && nextStatus === "stationary") {
                 const locationInput = document.getElementById("movingLocationInput");
                 const altitudeInput = document.getElementById("movingAltitudeInput");
@@ -926,6 +1062,8 @@
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingLocation`, grid);
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingAltitude`, altitude);
                 sendStationaryLocationUpdate();
+                movingLocationInputDirty = false;
+                movingAltitudeInputDirty = false;
             }
 
             setUnitOperationalStatus(nextStatus);
@@ -978,6 +1116,7 @@
                     missionInstanceId: getMissionInstanceId(payload),
                     receivedAt: new Date().toISOString(),
                 });
+                setCurrentTargetNumber(payload.targetNumber);
                 setMissionUnitStatus("received mission", payload);
             }
             updateTargetReceivedNotification(payload);
@@ -1413,6 +1552,7 @@
             }
 
             localStorage.removeItem("latestFiringSolutions");
+            clearCurrentTargetNumber();
             removeUnitReport("missionReceivedReport");
             removeUnitReport("dfcsReadyState");
             localStorage.removeItem("fireCommand");
@@ -1442,6 +1582,7 @@
 
             localStorage.setItem("missionDenyReport", JSON.stringify(report));
             localStorage.setItem(`dfcsDeniedMission${getAssignedFdcCallsign()}${assignedUnit}`, JSON.stringify(report));
+            clearCurrentTargetNumber();
             setMissionUnitStatus(reportedStatus, payload);
             removeUnitReport("missionReceivedReport");
             removeUnitReport("dfcsReadyState");
@@ -1458,6 +1599,7 @@
                 : null;
 
             if (!solution || !payload || !payload.targetNumber) return;
+            if (solution.crestBlocked) return;
             if (isTargetNotificationPending(payload, solution)) return;
 
             setUnitReport("dfcsReadyState", {
@@ -1483,7 +1625,7 @@
                 fireCommand.unit === assignedUnit ||
                 (Array.isArray(fireCommand.units) && fireCommand.units.includes(assignedUnit))
             );
-            const canSendShot = fireForUnit || (isReady && isCountdownFireNow(payload, solution)) || (isReady && isWhenReadyFireNow(payload));
+            const canSendShot = !solution?.crestBlocked && (fireForUnit || (isReady && isCountdownFireNow(payload, solution)) || (isReady && isWhenReadyFireNow(payload)));
             if (!canSendShot) return;
 
             setUnitReport("shotReport", {
@@ -1552,6 +1694,9 @@
             const roundsCompleteButton = document.getElementById("roundsCompleteButton");
             const denyMissionButton = document.getElementById("denyMissionButton");
             const movementButton = document.getElementById("movementButton");
+            const crestButton = document.getElementById("crestButton");
+            const crestPanel = document.getElementById("crestPanel");
+            const crestMinimumElevationInput = document.getElementById("crestMinimumElevationInput");
             const movingLocationPanel = document.getElementById("movingLocationPanel");
             const movingLocationInput = document.getElementById("movingLocationInput");
             const movingAltitudeInput = document.getElementById("movingAltitudeInput");
@@ -1578,7 +1723,7 @@
                 endMissionReportText.innerText = lines.join("\n");
             }
 
-            readyButton.disabled = !solution || targetNotificationActive;
+            readyButton.disabled = !solution || targetNotificationActive || Boolean(solution && solution.crestBlocked);
             readyButton.classList.toggle("sent", isReady);
             readyButton.innerText = isReady ? "READY SENT" : "READY";
             movementButton.classList.remove("moving", "stationary");
@@ -1590,13 +1735,24 @@
                 : operationalStatus === "stationary"
                     ? "STATIONARY"
                     : "SET STATIONARY";
+            if (crestButton) {
+                const crestMinimum = getCrestMinimumElevation(assignedUnit);
+                crestButton.classList.toggle("active", Boolean(crestMinimum));
+                crestButton.innerText = "CREST DATA";
+            }
+            if (crestPanel) {
+                crestPanel.classList.toggle("visible", crestPanelOpen);
+            }
+            if (crestMinimumElevationInput && document.activeElement !== crestMinimumElevationInput) {
+                crestMinimumElevationInput.value = getCrestMinimumElevation(assignedUnit);
+            }
             if (movingLocationPanel) {
                 movingLocationPanel.classList.toggle("visible", operationalStatus === "moving");
             }
-            if (movingLocationInput && document.activeElement !== movingLocationInput) {
+            if (movingLocationInput && document.activeElement !== movingLocationInput && !movingLocationInputDirty) {
                 movingLocationInput.value = getPendingMovingLocation(assignedUnit) || getCurrentUnitLocation(assignedUnit);
             }
-            if (movingAltitudeInput && document.activeElement !== movingAltitudeInput) {
+            if (movingAltitudeInput && document.activeElement !== movingAltitudeInput && !movingAltitudeInputDirty) {
                 movingAltitudeInput.value = getPendingMovingAltitude(assignedUnit) || getCurrentUnitAltitude(assignedUnit);
             }
             fireWarning.classList.remove("active");
@@ -1619,6 +1775,8 @@
                 commandStatus.innerText = "Ready sent to FDC.";
             } else if (targetNotificationActive) {
                 commandStatus.innerText = "Acknowledge target received.";
+            } else if (solution && solution.crestBlocked) {
+                commandStatus.innerText = "Local crest blocks this firing solution.";
             } else if (solution) {
                 commandStatus.innerText = "Review firing data, then press Ready.";
             } else {
@@ -1628,6 +1786,7 @@
             if (checkFiringActive) {
                 readyButton.disabled = true;
                 movementButton.disabled = true;
+                if (crestButton) crestButton.disabled = true;
                 shotButton.disabled = true;
                 roundsCompleteButton.disabled = true;
                 denyMissionButton.disabled = true;
@@ -1636,6 +1795,7 @@
                 commandStatus.innerText = "CHECK FIRING active. Await FDC.";
             } else {
                 movementButton.disabled = false;
+                if (crestButton) crestButton.disabled = false;
             }
 
             if (!solution) {
@@ -1649,7 +1809,7 @@
             const fireCountdown = getFireCountdown(payload, solution);
             const totFireCommanded = isCountdownFireNow(payload, solution);
             const whenReadyFireCommanded = isReady && isWhenReadyFireNow(payload);
-            const showFireWarning = Boolean(!checkFiringActive && solution && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
+            const showFireWarning = Boolean(!checkFiringActive && solution && !solution.crestBlocked && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
             fireWarning.classList.toggle("active", showFireWarning);
             shotButton.disabled = !showFireWarning;
             setNotificationSound("dfcs-fire", showFireWarning);
@@ -1661,6 +1821,7 @@
             applyCheckFiringButtonLockout(checkFiringActive);
             emptyState.style.display = "none";
             grid.innerHTML = [
+                solution.status ? addDataItem("Status", solution.status) : "",
                 addDataItem("Bearing", solution.bearing),
                 addDataItem("Elevation", solution.elevation),
                 solution.ammunition ? addDataItem("Ammunition", solution.ammunition) : "",
@@ -1676,6 +1837,7 @@
         updateSoundToggleButton();
         applyNotificationVolume();
         updateDfcsZuluTimeDisplay();
+        setupMovingLocationInputs();
         writeDfcsPresence(true);
         renderDfcs();
         setInterval(updateDfcsZuluTimeDisplay, 1000);

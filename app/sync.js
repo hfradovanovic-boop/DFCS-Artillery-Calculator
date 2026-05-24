@@ -11,6 +11,7 @@
         "shotReport",
         "roundsCompleteReport",
         "missionDenyReport",
+        "checkFiringState",
         "dfcsPing",
         "fdcPingAck",
         "fdcPing",
@@ -25,7 +26,10 @@
         "Location",
         "Altitude",
         "OperationalStatus",
+        "CrestMinimumElevation",
+        "CurrentTargetNumber",
         "PendingLocation",
+        "PendingAltitude",
         "Presence",
     ];
     const unitReportKeys = ["missionReceivedReport", "dfcsReadyState", "shotReport", "roundsCompleteReport"];

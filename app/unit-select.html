@@ -232,7 +232,7 @@
         function renderFiringUnitPage() {
             writeDfcsPresence();
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
-            const weaponSystem = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+            const weaponSystem = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777";
             const units = getFireUnits();
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || (units[0] && units[0].label) || "A";
 
